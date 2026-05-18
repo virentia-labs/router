@@ -1,0 +1,26 @@
+{
+  "name": "@virentia/router-root",
+  "version": "0.0.0",
+  "private": true,
+  "license": "MIT",
+  "type": "module",
+  "packageManager": "pnpm@11.0.9",
+  "engines": {
+    "node": ">=22.13"
+  },
+  "scripts": {
+    "build": "pnpm -r build",
+    "changeset": "changeset",
+    "release": "changeset publish",
+    "test": "pnpm -r test",
+    "typecheck": "tsc --noEmit",
+    "version-packages": "changeset version && pnpm install --lockfile-only"
+  },
+  "devDependencies": {
+    "@changesets/cli": "^2.31.0",
+    "@types/node": "^25.3.3",
+    "tsdown": "^0.21.10",
+    "typescript": "^6.0.3",
+    "vitest": "^4.0.18"
+  }
+}
