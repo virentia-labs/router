@@ -24,7 +24,7 @@ describe("chained routes", () => {
 
     const authorized = event<void>();
     const rejected = event<void>();
-    const checkAuthorizationFx = effect<RouteOpenedPayload<{ id: string }>, boolean>(
+    const checkAuthorizationFx = effect<RouteOpenedPayload<{ id: string }>, boolean, unknown>(
       (payload) => payload.params.id !== "0",
     );
 
@@ -67,7 +67,7 @@ describe("chained routes", () => {
   test("chains virtual route", async () => {
     const appScope = scope();
     const virtualRoute = createVirtualRoute<RouteOpenedPayload<void>>();
-    const beforeOpenFx = effect<RouteOpenedPayload<void>, RouteOpenedPayload<void>>(
+    const beforeOpenFx = effect<RouteOpenedPayload<void>, RouteOpenedPayload<void>, unknown>(
       (params) => params,
     );
     const counter = watchCalls(beforeOpenFx.started, appScope);

@@ -39,8 +39,10 @@ export function trackQueryFactory({
   return function trackQuery<Parameters>(
     config: QueryTrackerConfig<Parameters>,
   ): QueryTracker<Parameters> {
-    const enteredState = store<boolean>(false);
-    const lastEnteredKey = store<{ value: string | null }>({ value: null });
+    const entryState = store<{ entered: boolean; key: string | null }>({
+      entered: false,
+      key: null
+    });
     const entered = event<Parameters>();
     const exited = event<void>();
     const enter = event<Parameters>();
@@ -55,19 +57,17 @@ export function trackQueryFactory({
       if (active && parsed.success) {
         const nextKey = createEntryKey(parsed.data, config.forRoutes, currentRoutes);
 
-        if (enteredState.value && lastEnteredKey.value === nextKey) {
+        if (entryState.entered && entryState.key === nextKey) {
           return;
         }
 
-        writeStore(enteredState, true);
-        lastEnteredKey.value = nextKey;
+        writeStore(entryState, { entered: true, key: nextKey });
         void entered(parsed.data);
         return;
       }
 
-      if (enteredState.value) {
-        writeStore(enteredState, false);
-        lastEnteredKey.value = null;
+      if (entryState.entered) {
+        writeStore(entryState, { entered: false, key: null });
         void exited();
       }
     };
@@ -82,7 +82,7 @@ export function trackQueryFactory({
         readQuery();
         readActiveRoutes(activeRoutes);
 
-        if (enteredState.value) {
+        if (entryState.entered) {
           evaluate();
         }
       });
