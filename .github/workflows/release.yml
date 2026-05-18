@@ -2,15 +2,6 @@ name: Release
 
 on:
   workflow_dispatch:
-    inputs:
-      step:
-        description: "Release step"
-        required: true
-        default: "prepare"
-        type: choice
-        options:
-          - prepare
-          - publish
 
 concurrency:
   group: release-${{ github.ref }}
@@ -24,7 +15,6 @@ jobs:
     permissions:
       contents: write
       id-token: write
-      pull-requests: write
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -50,6 +40,17 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
+      - name: Verify release commit
+        run: |
+          pending_changesets="$(find .changeset -maxdepth 1 -name "*.md" ! -name "README.md" -print)"
+
+          if [ -n "$pending_changesets" ]; then
+            echo "Pending changesets found:"
+            echo "$pending_changesets"
+            echo "Run pnpm prepare-release locally, commit the generated release changes, and rerun this workflow."
+            exit 1
+          fi
+
       - name: Typecheck
         run: pnpm typecheck
 
@@ -59,28 +60,15 @@ jobs:
       - name: Build
         run: pnpm build
 
-      - name: Prepare release pull request
-        if: inputs.step == 'prepare'
-        uses: changesets/action@v1
-        with:
-          commit: "chore: release packages"
-          title: "chore: release packages"
-          version: pnpm version-packages
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
       - name: Configure release git user
-        if: inputs.step == 'publish'
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
 
       - name: Publish packages
-        if: inputs.step == 'publish'
         run: pnpm release
         env:
           NPM_CONFIG_PROVENANCE: "true"
 
       - name: Push release tags
-        if: inputs.step == 'publish'
         run: git push --follow-tags
