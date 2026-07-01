@@ -100,7 +100,7 @@ describe("react bindings", () => {
     await waitFor(() =>
       scoped(appScope, () => {
         expect(route2.isOpened.value).toBe(true);
-        expect(route2.params.id).toBe("123");
+        expect(route2.params.value.id).toBe("123");
       }),
     );
 
@@ -187,7 +187,7 @@ describe("react bindings", () => {
 
     const authRoute = createRoute({ path: "/auth" });
     const profileRoute = createRoute({ path: "/profile" });
-    const user = store<{ value: User | null }>({ value: { id: 1, name: "edward" } });
+    const user = store<User | null>({ id: 1, name: "edward" });
 
     const authorizationCheckStarted = event<RouteOpenedPayload<void>>();
     const authorized = event<void>();
@@ -242,7 +242,7 @@ describe("react bindings", () => {
     await waitFor(() => expect(screen.getByTestId("message").textContent).toBe("profile"));
 
     await act(async () => {
-      await allSettled(user, { scope: appScope, payload: { value: null } });
+      await allSettled(user, { scope: appScope, payload: null });
       await allSettled(authRoute.open, { scope: appScope, payload: {} });
     });
 

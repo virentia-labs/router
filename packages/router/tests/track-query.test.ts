@@ -252,8 +252,8 @@ describe("trackQuery", () => {
 
     await vi.waitFor(() => expect(exitedCalls).toHaveBeenCalled());
     scoped(appScope, () => {
-      expect(router.query.any).toBeUndefined();
-      expect(router.query.uid).toBeUndefined();
+      expect(router.query.value.any).toBeUndefined();
+      expect(router.query.value.uid).toBeUndefined();
     });
   });
 
@@ -283,8 +283,8 @@ describe("trackQuery", () => {
 
     await vi.waitFor(() => expect(exitedCalls).toHaveBeenCalled());
     scoped(appScope, () => {
-      expect(router.query.any).toBeUndefined();
-      expect(router.query.uid).toBe("hi!");
+      expect(router.query.value.any).toBeUndefined();
+      expect(router.query.value.uid).toBe("hi!");
     });
   });
 
@@ -305,8 +305,8 @@ describe("trackQuery", () => {
     });
 
     scoped(appScope, () => {
-      expect(router.query.id).toBe("0");
-      expect(router.query.role).toBe("user");
+      expect(router.query.value.id).toBe("0");
+      expect(router.query.value.role).toBe("user");
     });
     expect(history.location.search).toBe("?id=0&role=user");
 
@@ -316,8 +316,8 @@ describe("trackQuery", () => {
     });
 
     scoped(appScope, () => {
-      expect(router.query.id).toBe("1");
-      expect(router.query.role).toBe("admin");
+      expect(router.query.value.id).toBe("1");
+      expect(router.query.value.role).toBe("admin");
     });
     expect(history.location.search).toBe("?id=1&role=admin");
   });

@@ -26,12 +26,12 @@ interface PendingCauseState {
 
 export function createRouterControls(): RouterControls {
   const historyState = store<HistoryState>({ current: null });
-  const history = computed(() => historyState.current);
+  const history = computed(() => historyState.value.current);
   const locationState = store<LocationState>({ path: "", query: {}, causedBy: undefined });
   const subscriptionState = store<SubscriptionState>({ unsubscribe: null });
   const pendingCause = store<PendingCauseState>({ current: null });
-  const query = computed(() => locationState.query);
-  const path = computed(() => locationState.path);
+  const query = computed(() => locationState.value.query);
+  const path = computed(() => locationState.value.path);
 
   const setHistory = event<RouterAdapter>();
   const navigate = event<NavigatePayload>();
@@ -45,8 +45,8 @@ export function createRouterControls(): RouterControls {
     run(nextHistory) {
       const inRouterScope = scoped();
 
-      subscriptionState.unsubscribe?.();
-      historyState.current = nextHistory;
+      subscriptionState.value.unsubscribe?.();
+      historyState.value = { current: nextHistory };
 
       const emit = (
         location: RouterLocation,
@@ -65,37 +65,39 @@ export function createRouterControls(): RouterControls {
       const subscription = nextHistory.listen((location) => {
         inRouterScope(() => {
           const causedBy =
-            pendingCause.current ?? { type: "history" as const, source: "pop" as const };
+            pendingCause.value.current ?? { type: "history" as const, source: "pop" as const };
 
-          pendingCause.current = null;
+          pendingCause.value = { current: null };
           emit(location, causedBy);
         });
       });
 
-      subscriptionState.unsubscribe = () => subscription.unsubscribe();
+      subscriptionState.value = { unsubscribe: () => subscription.unsubscribe() };
     }
   });
 
   reaction({
     on: locationUpdated,
     run(nextLocation) {
-      locationState.path = nextLocation.path;
-      locationState.query = nextLocation.query;
-      locationState.causedBy = nextLocation.causedBy;
+      locationState.value = {
+        path: nextLocation.path,
+        query: nextLocation.query,
+        causedBy: nextLocation.causedBy
+      };
     }
   });
 
   reaction({
     on: navigate,
     run(payload) {
-      const history = historyState.current;
+      const history = historyState.value.current;
 
       if (!history) {
         throw new Error("history not found");
       }
 
       const pathname = payload.path ?? path.value;
-      const query = payload.query ?? readQuery(locationState.query);
+      const query = payload.query ?? readQuery(locationState.value.query);
       const search = stringifyQuery(query);
       const causedBy =
         payload.causedBy ??
@@ -104,7 +106,7 @@ export function createRouterControls(): RouterControls {
           source: payload.replace ? "replace" : "push"
         } satisfies RouteActivationCause);
 
-      pendingCause.current = causedBy ?? null;
+      pendingCause.value = { current: causedBy ?? null };
 
       const to = {
         pathname,
@@ -117,8 +119,8 @@ export function createRouterControls(): RouterControls {
         history.push(to);
       }
 
-      if (pendingCause.current && history.location.pathname !== pathname) {
-        pendingCause.current = null;
+      if (pendingCause.value.current && history.location.pathname !== pathname) {
+        pendingCause.value = { current: null };
       }
     }
   });
@@ -126,7 +128,7 @@ export function createRouterControls(): RouterControls {
   reaction({
     on: back,
     run() {
-      const history = historyState.current;
+      const history = historyState.value.current;
 
       if (!history) {
         throw new Error("history not found");
@@ -139,7 +141,7 @@ export function createRouterControls(): RouterControls {
   reaction({
     on: forward,
     run() {
-      const history = historyState.current;
+      const history = historyState.value.current;
 
       if (!history) {
         throw new Error("history not found");
@@ -152,10 +154,10 @@ export function createRouterControls(): RouterControls {
   reaction({
     on: dispose,
     run() {
-      subscriptionState.unsubscribe?.();
-      subscriptionState.unsubscribe = null;
-      historyState.current = null;
-      pendingCause.current = null;
+      subscriptionState.value.unsubscribe?.();
+      subscriptionState.value = { unsubscribe: null };
+      historyState.value = { current: null };
+      pendingCause.value = { current: null };
     }
   });
 
@@ -173,7 +175,7 @@ export function createRouterControls(): RouterControls {
     trackQuery: trackQueryFactory({
       activeRoutes: store<Route<any>[]>([]),
       query,
-      readQuery: () => readQuery(locationState.query),
+      readQuery: () => readQuery(locationState.value.query),
       navigate
     })
   };

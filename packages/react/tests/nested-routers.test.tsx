@@ -266,13 +266,13 @@ describe("nested routers", () => {
 
     await waitFor(() => {
       expect(getByTestId("message").textContent).toBe("Workspace");
-      scoped(appScope, () => expect(mainRoutes.workspace.params.workspaceId).toBe("ws-123"));
+      scoped(appScope, () => expect(mainRoutes.workspace.params.value.workspaceId).toBe("ws-123"));
     });
 
     await openRoute(projectRoutes.tasks, appScope, { params: { taskId: "task-456" } });
     await waitFor(() => {
       expect(getByTestId("message").textContent).toBe("Task View");
-      scoped(appScope, () => expect(projectRoutes.tasks.params.taskId).toBe("task-456"));
+      scoped(appScope, () => expect(projectRoutes.tasks.params.value.taskId).toBe("task-456"));
     });
 
     await openRoute(projectRoutes.details, appScope);

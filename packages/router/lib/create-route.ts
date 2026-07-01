@@ -71,7 +71,7 @@ export function createRoute<Params extends object | void = void>(
     }
   );
 
-  const isPending = computed(() => openFx.$pending.value || activateFx.$pending.value);
+  const isPending = computed(() => openFx.pending.value || activateFx.pending.value);
 
   const route = {
     "@@type": "path" in config ? "path-route" : "pathless-route",

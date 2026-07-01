@@ -17,10 +17,7 @@ function routeIsActive(forRoutes: Route<any>[] | undefined, activeRoutes: Route<
 }
 
 function readActiveRoutes(activeRoutes: Store<Route<any>[]>): Route<any>[] {
-  const source = activeRoutes as unknown as { length: number; [index: number]: Route<any> };
-  return Array.from({ length: source.length }, (_value, index) => source[index]).filter(
-    (route): route is Route<any> => Boolean(route),
-  );
+  return activeRoutes.value.filter((route): route is Route<any> => Boolean(route));
 }
 
 interface TrackQueryFactoryConfig {
@@ -57,7 +54,7 @@ export function trackQueryFactory({
       if (active && parsed.success) {
         const nextKey = createEntryKey(parsed.data, config.forRoutes, currentRoutes);
 
-        if (entryState.entered && entryState.key === nextKey) {
+        if (entryState.value.entered && entryState.value.key === nextKey) {
           return;
         }
 
@@ -66,7 +63,7 @@ export function trackQueryFactory({
         return;
       }
 
-      if (entryState.entered) {
+      if (entryState.value.entered) {
         writeStore(entryState, { entered: false, key: null });
         void exited();
       }
@@ -82,7 +79,7 @@ export function trackQueryFactory({
         readQuery();
         readActiveRoutes(activeRoutes);
 
-        if (entryState.entered) {
+        if (entryState.value.entered) {
           evaluate();
         }
       });

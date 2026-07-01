@@ -14,14 +14,14 @@ describe("router", () => {
 
     await allSettled(router.setHistory, {
       scope: appScope,
-      payload: historyAdapter(history)
+      payload: historyAdapter(history),
     });
 
     history.push("/one");
 
     await vi.waitFor(() =>
       scoped(appScope, () => {
-        expect(router.activeRoutes[0]).toBe(one);
+        expect(router.activeRoutes.value[0]).toBe(one);
         expect(one.isOpened.value).toBe(true);
         expect(two.isOpened.value).toBe(false);
       }),
@@ -37,13 +37,13 @@ describe("router", () => {
 
     await allSettled(router.setHistory, {
       scope: appScope,
-      payload: historyAdapter(history)
+      payload: historyAdapter(history),
     });
 
     history.push("/one");
     await vi.waitFor(() =>
       scoped(appScope, () => {
-        expect(router.activeRoutes[0]).toBe(one);
+        expect(router.activeRoutes.value[0]).toBe(one);
         expect(one.isOpened.value).toBe(true);
       }),
     );
@@ -51,7 +51,7 @@ describe("router", () => {
     history.push("/two");
     await vi.waitFor(() =>
       scoped(appScope, () => {
-        expect(router.activeRoutes[0]).toBe(two);
+        expect(router.activeRoutes.value[0]).toBe(two);
         expect(one.isOpened.value).toBe(false);
         expect(two.isOpened.value).toBe(true);
       }),
@@ -68,7 +68,7 @@ describe("router", () => {
 
     await allSettled(router.setHistory, {
       scope: appScope,
-      payload: historyAdapter(history)
+      payload: historyAdapter(history),
     });
 
     await allSettled(one.open, { scope: appScope, payload: {} });
@@ -76,13 +76,13 @@ describe("router", () => {
 
     await allSettled(two.open, {
       scope: appScope,
-      payload: { params: { id: "hello" } }
+      payload: { params: { id: "hello" } },
     });
     expect(history.location.pathname).toBe("/two/hello");
 
     await allSettled(nested.open, {
       scope: appScope,
-      payload: { params: { id: "hello" } }
+      payload: { params: { id: "hello" } },
     });
     expect(history.location.pathname).toBe("/one/nested/hello");
   });
@@ -95,17 +95,17 @@ describe("router", () => {
 
     await allSettled(router.setHistory, {
       scope: appScope,
-      payload: historyAdapter(history)
+      payload: historyAdapter(history),
     });
 
     history.push("/auth?login=movpushmov&password=123&retry=1&retry=1");
 
     await vi.waitFor(() =>
       scoped(appScope, () => {
-        expect(router.activeRoutes[0]).toBe(route);
-        expect(router.query.login).toBe("movpushmov");
-        expect(router.query.password).toBe("123");
-        expect(router.query.retry).toStrictEqual(["1", "1"]);
+        expect(router.activeRoutes.value[0]).toBe(route);
+        expect(router.query.value.login).toBe("movpushmov");
+        expect(router.query.value.password).toBe("123");
+        expect(router.query.value.retry).toStrictEqual(["1", "1"]);
       }),
     );
   });
@@ -118,33 +118,37 @@ describe("router", () => {
 
     await allSettled(router.setHistory, {
       scope: appScope,
-      payload: historyAdapter(history)
+      payload: historyAdapter(history),
     });
 
     await allSettled(route.open, {
       scope: appScope,
       payload: {
-        query: { login: "movpushmov", password: "123", retry: ["1", "1"] }
-      }
+        query: { login: "movpushmov", password: "123", retry: ["1", "1"] },
+      },
     });
 
     expect(history.location.pathname).toBe("/auth");
-    expect(history.location.search).toBe("?login=movpushmov&password=123&retry=1&retry=1");
+    expect(history.location.search).toBe(
+      "?login=movpushmov&password=123&retry=1&retry=1",
+    );
   });
 
   it("passes payload to beforeOpen on direct history activation", async () => {
     const beforeOpen = vi.fn();
     const route = createRoute({
       path: "/profile/:id<number>",
-      beforeOpen: [beforeOpen]
+      beforeOpen: [beforeOpen],
     });
     const appScope = scope();
-    const history = createMemoryHistory({ initialEntries: ["/profile/42?tab=info"] });
+    const history = createMemoryHistory({
+      initialEntries: ["/profile/42?tab=info"],
+    });
     const router = createRouter({ routes: [route] });
 
     await allSettled(router.setHistory, {
       scope: appScope,
-      payload: historyAdapter(history)
+      payload: historyAdapter(history),
     });
 
     expect(beforeOpen).toHaveBeenCalledTimes(1);
@@ -152,7 +156,7 @@ describe("router", () => {
       expect.objectContaining({
         params: { id: 42 },
         query: { tab: "info" },
-        causedBy: { type: "history", source: "initial" }
+        causedBy: { type: "history", source: "initial" },
       }),
     );
   });
@@ -162,11 +166,11 @@ describe("router", () => {
     const step2BeforeOpen = vi.fn();
     const step1 = createRoute({
       path: "/step1",
-      beforeOpen: [step1BeforeOpen]
+      beforeOpen: [step1BeforeOpen],
     });
     const step2 = createRoute({
       path: "/step2",
-      beforeOpen: [step2BeforeOpen]
+      beforeOpen: [step2BeforeOpen],
     });
     const appScope = scope();
     const history = createMemoryHistory({ initialEntries: ["/step1"] });
@@ -174,7 +178,7 @@ describe("router", () => {
 
     await allSettled(router.setHistory, {
       scope: appScope,
-      payload: historyAdapter(history)
+      payload: historyAdapter(history),
     });
 
     expect(step1BeforeOpen).toHaveBeenCalledTimes(1);
@@ -188,7 +192,7 @@ describe("router", () => {
     const home = createRoute({ path: "/" });
     const profile = createRoute({
       path: "/profile/:id",
-      beforeOpen: [beforeOpen]
+      beforeOpen: [beforeOpen],
     });
     const appScope = scope();
     const history = createMemoryHistory({ initialEntries: ["/"] });
@@ -196,13 +200,13 @@ describe("router", () => {
 
     await allSettled(router.setHistory, {
       scope: appScope,
-      payload: historyAdapter(history)
+      payload: historyAdapter(history),
     });
     beforeOpen.mockClear();
 
     await allSettled(profile.open, {
       scope: appScope,
-      payload: { params: { id: "movpushmov" } }
+      payload: { params: { id: "movpushmov" } },
     });
 
     expect(history.location.pathname).toBe("/profile/movpushmov");
@@ -212,7 +216,7 @@ describe("router", () => {
       scoped(appScope, () => {
         expect(home.isOpened.value).toBe(false);
         expect(profile.isOpened.value).toBe(true);
-        expect(profile.params.id).toBe("movpushmov");
+        expect(profile.params.value.id).toBe("movpushmov");
       }),
     );
   });
@@ -226,14 +230,14 @@ describe("router", () => {
 
     await allSettled(router.setHistory, {
       scope: appScope,
-      payload: historyAdapter(history)
+      payload: historyAdapter(history),
     });
 
     history.block(() => false);
     await allSettled(step2.open, { scope: appScope, payload: {} });
 
     scoped(appScope, () => {
-      expect(router.activeRoutes[0]).toBe(step1);
+      expect(router.activeRoutes.value[0]).toBe(step1);
       expect(step1.isOpened.value).toBe(true);
       expect(step2.isOpened.value).toBe(false);
     });
@@ -248,7 +252,7 @@ describe("router", () => {
 
     await allSettled(router.setHistory, {
       scope: appScope,
-      payload: historyAdapter(history)
+      payload: historyAdapter(history),
     });
 
     await vi.waitFor(() =>
@@ -262,24 +266,24 @@ describe("router", () => {
   it("supports subrouters", async () => {
     const settingsModalRoutes = {
       general: createRoute({ path: "/" }),
-      security: createRoute({ path: "/security" })
+      security: createRoute({ path: "/security" }),
     };
     const settingsModalRouter = createRouter({
       base: "/settings",
-      routes: [settingsModalRoutes.general, settingsModalRoutes.security]
+      routes: [settingsModalRoutes.general, settingsModalRoutes.security],
     });
     const mainRoutes = {
-      home: createRoute({ path: "/" })
+      home: createRoute({ path: "/" }),
     };
     const mainRouter = createRouter({
-      routes: [mainRoutes.home, settingsModalRouter]
+      routes: [mainRoutes.home, settingsModalRouter],
     });
     const appScope = scope();
     const history = createMemoryHistory();
 
     await allSettled(mainRouter.setHistory, {
       scope: appScope,
-      payload: historyAdapter(history)
+      payload: historyAdapter(history),
     });
 
     await allSettled(mainRoutes.home.open, { scope: appScope, payload: {} });
@@ -291,7 +295,10 @@ describe("router", () => {
       }),
     );
 
-    await allSettled(settingsModalRoutes.general.open, { scope: appScope, payload: {} });
+    await allSettled(settingsModalRoutes.general.open, {
+      scope: appScope,
+      payload: {},
+    });
 
     await vi.waitFor(() =>
       scoped(appScope, () => {
@@ -300,7 +307,10 @@ describe("router", () => {
       }),
     );
 
-    await allSettled(settingsModalRoutes.security.open, { scope: appScope, payload: {} });
+    await allSettled(settingsModalRoutes.security.open, {
+      scope: appScope,
+      payload: {},
+    });
 
     await vi.waitFor(() =>
       scoped(appScope, () => {
@@ -319,7 +329,7 @@ describe("router", () => {
 
     await allSettled(router.setHistory, {
       scope: appScope,
-      payload: historyAdapter(createMemoryHistory())
+      payload: historyAdapter(createMemoryHistory()),
     });
 
     await vi.waitFor(() => expect(openedCalls).toHaveBeenCalledTimes(1));
@@ -334,8 +344,8 @@ describe("router", () => {
         () =>
           new Promise<void>((resolve) => {
             gate.release = resolve;
-          })
-      ]
+          }),
+      ],
     });
     const appScope = scope();
     const history = createMemoryHistory({ initialEntries: ["/"] });
@@ -343,7 +353,7 @@ describe("router", () => {
 
     await allSettled(router.setHistory, {
       scope: appScope,
-      payload: historyAdapter(history)
+      payload: historyAdapter(history),
     });
 
     await vi.waitFor(() =>
@@ -354,7 +364,7 @@ describe("router", () => {
 
     const opening = allSettled(profile.open, {
       scope: appScope,
-      payload: { params: { id: "42" } }
+      payload: { params: { id: "42" } },
     });
 
     await Promise.resolve();

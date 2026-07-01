@@ -54,7 +54,7 @@ export function createRouter(config: CreateRouterConfig): Router {
   const trackQuery = trackQueryFactory({
     activeRoutes,
     query: controls.query,
-    readQuery: () => ({ ...controls.locationState.query }),
+    readQuery: () => ({ ...controls.locationState.value.query }),
     navigate: controls.navigate
   });
 

@@ -36,9 +36,9 @@
   "devDependencies": {
     "history": "^5.3.0",
     "vitest": "^4.0.18",
-    "@virentia/core": "^0.2.0"
+    "@virentia/core": "^0.3.1"
   },
   "peerDependencies": {
-    "@virentia/core": ">=0.2.0"
+    "@virentia/core": ">=0.3.0"
   }
 }

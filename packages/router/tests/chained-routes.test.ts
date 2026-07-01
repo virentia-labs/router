@@ -59,7 +59,7 @@ describe("chained routes", () => {
     await vi.waitFor(() =>
       scoped(appScope, () => {
         expect(virtual.isOpened.value).toBe(true);
-        expect(virtual.params.id).toBe("1");
+        expect(virtual.params.value.id).toBe("1");
       }),
     );
   });

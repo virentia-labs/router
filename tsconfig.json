@@ -16,7 +16,9 @@
     "ignoreDeprecations": "6.0",
     "paths": {
       "@virentia/router": ["packages/router/lib/index.ts"],
-      "@virentia/router-paths": ["packages/paths/lib/index.ts"]
+      "@virentia/router-paths": ["packages/paths/lib/index.ts"],
+      "@virentia/router-react": ["packages/react/lib/index.ts"],
+      "@virentia/router-react-native": ["packages/react-native/lib/index.ts"]
     }
   },
   "include": ["packages/**/*.ts", "packages/**/*.tsx"]

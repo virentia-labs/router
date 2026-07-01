@@ -35,7 +35,7 @@ export function chainRoute<T extends object | void = void>(
   const beforeOpenUnits = ([] as BeforeOpenUnit<T>[]).concat(beforeOpen);
   let asyncImport: AsyncBundleImport | null = null;
 
-  const lastPayload = store<{ value: RouteOpenedPayload<T> | null }>({ value: null });
+  const lastPayload = store<RouteOpenedPayload<T> | null>(null);
   const isPendingState = store<boolean>(false);
   const isPending = computed(() => isPendingState.value);
 
