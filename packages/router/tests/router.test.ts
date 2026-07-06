@@ -156,7 +156,6 @@ describe("router", () => {
       expect.objectContaining({
         params: { id: 42 },
         query: { tab: "info" },
-        causedBy: { type: "history", source: "initial" },
       }),
     );
   });
@@ -333,6 +332,37 @@ describe("router", () => {
     });
 
     await vi.waitFor(() => expect(openedCalls).toHaveBeenCalledTimes(1));
+  });
+
+  it("does not re-activate when the same location is applied again", async () => {
+    const beforeOpen = vi.fn();
+    const route = createRoute({ path: "/x", beforeOpen: [beforeOpen] });
+    const appScope = scope();
+    const history = createMemoryHistory();
+    const router = createRouter({ routes: [route] });
+    const opened = watchCalls(route.opened, appScope);
+
+    await allSettled(router.setHistory, {
+      scope: appScope,
+      payload: historyAdapter(history),
+    });
+
+    history.push("/x");
+    await vi.waitFor(() => expect(opened).toHaveBeenCalledTimes(1));
+    expect(beforeOpen).toHaveBeenCalledTimes(1);
+
+    // Re-applying the identical location is a no-op: no second opened, no
+    // second beforeOpen.
+    history.push("/x");
+    await new Promise((resolve) => setTimeout(resolve, 10));
+
+    expect(opened).toHaveBeenCalledTimes(1);
+    expect(beforeOpen).toHaveBeenCalledTimes(1);
+
+    // A different params/query does re-activate.
+    history.push("/x?tab=info");
+    await vi.waitFor(() => expect(opened).toHaveBeenCalledTimes(2));
+    expect(beforeOpen).toHaveBeenCalledTimes(2);
   });
 
   it("keeps current route opened while route.open waits for beforeOpen", async () => {

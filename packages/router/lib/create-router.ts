@@ -16,7 +16,7 @@ import type {
   Route,
   Router
 } from "./types";
-import { is, shouldSkipBeforeOpenForCause } from "./utils";
+import { is } from "./utils";
 
 const inputIs = {
   pathlessRoute(input: InputRoute): input is { path: string; route: PathlessRoute<any> } {
@@ -55,30 +55,43 @@ export function createRouter(config: CreateRouterConfig): Router {
     activeRoutes,
     query: controls.query,
     readQuery: () => ({ ...controls.locationState.value.query }),
+    readOrigin: () => controls.locationState.value.origin,
     navigate: controls.navigate
   });
 
-  async function openRoutesByLocation(location: LocationState): Promise<void> {
-    const inRouterScope = scoped();
-    const matchedRoutes = new Set<InternalRoute<any>>();
+  // Projection, part 1 — derive the desired open set from the URL. Pure read
+  // over the route table: which routes the path wants open, with their params.
+  function deriveDesired(path: string): Array<{ route: InternalRoute<any>; params: unknown }> {
+    const desired: Array<{ route: InternalRoute<any>; params: unknown }> = [];
 
     for (const mapped of ownRoutes) {
-      const match = mapped.parse(location.path);
+      const match = mapped.parse(path);
 
-      if (!match) {
-        continue;
+      if (match) {
+        desired.push({ route: mapped.route, params: match.params });
       }
+    }
 
-      addMatchedRoute(mapped.route, matchedRoutes);
+    return desired;
+  }
 
-      const payload = createActivationPayload(
-        match.params,
-        location.query,
-        location.causedBy,
-        shouldSkipBeforeOpenForCause(mapped.route, location.causedBy),
-      );
+  // Projection, part 2 — reconcile the open route tree to the location.
+  // Idempotent: routes already open with the same params/query are left
+  // untouched by activateRoute. `beforeOpen` runs only for "external" origins;
+  // a "programmatic" origin means the change echoes a router-initiated
+  // navigation whose guards already ran on `route.open`, so activation skips them.
+  async function reconcile(location: LocationState): Promise<void> {
+    const inRouterScope = scoped();
+    const desired = deriveDesired(location.path);
+    const skipBeforeOpen = location.origin === "programmatic";
+    const matchedRoutes = new Set<InternalRoute<any>>();
 
-      await mapped.route.internal.activateRoute(payload, inRouterScope);
+    for (const { route, params } of desired) {
+      addMatchedRoute(route, matchedRoutes);
+
+      const payload = createActivationPayload(params, location.query, skipBeforeOpen);
+
+      await route.internal.activateRoute(payload, inRouterScope);
     }
 
     for (const { route } of ownRoutes) {
@@ -152,7 +165,7 @@ export function createRouter(config: CreateRouterConfig): Router {
   reaction({
     on: controls.locationUpdated,
     run(location) {
-      void openRoutesByLocation(location);
+      void reconcile(location);
     }
   });
 
@@ -173,10 +186,6 @@ export function createRouter(config: CreateRouterConfig): Router {
 
         if (payload?.replace !== undefined) {
           navigatePayload.replace = payload.replace;
-        }
-
-        if (payload?.causedBy !== undefined) {
-          navigatePayload.causedBy = payload.causedBy;
         }
 
         void controls.navigate(navigatePayload);
@@ -261,7 +270,6 @@ export function createRouter(config: CreateRouterConfig): Router {
 function createActivationPayload(
   params: unknown,
   query: Query,
-  causedBy: LocationState["causedBy"],
   skipBeforeOpen: boolean,
 ): InternalOpenedPayload<any> {
   const base: InternalOpenedPayload<any> = {
@@ -269,10 +277,6 @@ function createActivationPayload(
     skipBeforeOpen,
     navigate: false
   };
-
-  if (causedBy !== undefined) {
-    base.causedBy = causedBy;
-  }
 
   if (params && typeof params === "object") {
     base.params = { ...params };

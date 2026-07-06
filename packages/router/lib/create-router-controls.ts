@@ -2,14 +2,14 @@ import { computed, event, reaction, scoped, store } from "@virentia/core";
 import queryString from "query-string";
 import { trackQueryFactory } from "./track-query";
 import type {
+  LocationOrigin,
   LocationState,
   NavigatePayload,
   Query,
   RouterAdapter,
   RouterControls,
   RouterLocation,
-  Route,
-  RouteActivationCause
+  Route
 } from "./types";
 
 interface SubscriptionState {
@@ -20,16 +20,21 @@ interface HistoryState {
   current: RouterAdapter | null;
 }
 
-interface PendingCauseState {
-  current: RouteActivationCause | null;
+interface CommittedUrlState {
+  /** The URL the router itself last wrote, used to recognize its own echo. */
+  current: string | null;
 }
 
 export function createRouterControls(): RouterControls {
   const historyState = store<HistoryState>({ current: null });
   const history = computed(() => historyState.value.current);
-  const locationState = store<LocationState>({ path: "", query: {}, causedBy: undefined });
+  const locationState = store<LocationState>({
+    path: "",
+    query: {},
+    origin: undefined
+  });
   const subscriptionState = store<SubscriptionState>({ unsubscribe: null });
-  const pendingCause = store<PendingCauseState>({ current: null });
+  const committedUrl = store<CommittedUrlState>({ current: null });
   const query = computed(() => locationState.value.query);
   const path = computed(() => locationState.value.path);
 
@@ -48,27 +53,26 @@ export function createRouterControls(): RouterControls {
       subscriptionState.value.unsubscribe?.();
       historyState.value = { current: nextHistory };
 
-      const emit = (
-        location: RouterLocation,
-        causedBy: RouteActivationCause = { type: "history", source: "pop" },
-      ) =>
+      const emit = (location: RouterLocation, origin: LocationOrigin) =>
         inRouterScope(() => {
           void locationUpdated({
             path: location.pathname,
             query: parseQuery(location.search),
-            causedBy
+            origin
           });
         });
 
-      emit(nextHistory.location, { type: "history", source: "initial" });
+      emit(nextHistory.location, "external");
 
       const subscription = nextHistory.listen((location) => {
         inRouterScope(() => {
-          const causedBy =
-            pendingCause.value.current ?? { type: "history" as const, source: "pop" as const };
+          // Structurally tell our own echo from a real history change: if this
+          // is the URL we just wrote, it's programmatic (guards already ran).
+          const url = formatUrl(location.pathname, location.search);
+          const isEcho = committedUrl.value.current === url;
 
-          pendingCause.value = { current: null };
-          emit(location, causedBy);
+          committedUrl.value = { current: null };
+          emit(location, isEcho ? "programmatic" : "external");
         });
       });
 
@@ -82,7 +86,7 @@ export function createRouterControls(): RouterControls {
       locationState.value = {
         path: nextLocation.path,
         query: nextLocation.query,
-        causedBy: nextLocation.causedBy
+        origin: nextLocation.origin
       };
     }
   });
@@ -99,14 +103,11 @@ export function createRouterControls(): RouterControls {
       const pathname = payload.path ?? path.value;
       const query = payload.query ?? readQuery(locationState.value.query);
       const search = stringifyQuery(query);
-      const causedBy =
-        payload.causedBy ??
-        ({
-          type: "history",
-          source: payload.replace ? "replace" : "push"
-        } satisfies RouteActivationCause);
+      const url = formatUrl(pathname, search);
 
-      pendingCause.value = { current: causedBy ?? null };
+      // Mark this URL as router-originated so its history echo is classified as
+      // "programmatic" and activation skips beforeOpen (guards already ran).
+      committedUrl.value = { current: url };
 
       const to = {
         pathname,
@@ -119,8 +120,10 @@ export function createRouterControls(): RouterControls {
         history.push(to);
       }
 
-      if (pendingCause.value.current && history.location.pathname !== pathname) {
-        pendingCause.value = { current: null };
+      // History refused the change (e.g. a navigation block): drop the marker so
+      // a later genuine navigation to the same URL isn't mistaken for an echo.
+      if (formatUrl(history.location.pathname, history.location.search) !== url) {
+        committedUrl.value = { current: null };
       }
     }
   });
@@ -157,7 +160,7 @@ export function createRouterControls(): RouterControls {
       subscriptionState.value.unsubscribe?.();
       subscriptionState.value = { unsubscribe: null };
       historyState.value = { current: null };
-      pendingCause.value = { current: null };
+      committedUrl.value = { current: null };
     }
   });
 
@@ -176,6 +179,7 @@ export function createRouterControls(): RouterControls {
       activeRoutes: store<Route<any>[]>([]),
       query,
       readQuery: () => readQuery(locationState.value.query),
+      readOrigin: () => locationState.value.origin,
       navigate
     })
   };
@@ -192,4 +196,8 @@ function stringifyQuery(query: Query): string {
 
 function readQuery(query: Query): Query {
   return { ...query };
+}
+
+function formatUrl(pathname: string, search: string): string {
+  return `${pathname}${search}`;
 }

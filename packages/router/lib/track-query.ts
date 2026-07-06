@@ -1,5 +1,6 @@
 import { event, reaction, store, type Event, type EventCallable, type Store } from "@virentia/core";
 import type {
+  LocationOrigin,
   NavigatePayload,
   Query,
   QueryTracker,
@@ -24,6 +25,7 @@ interface TrackQueryFactoryConfig {
   activeRoutes: Store<Route<any>[]>;
   query: Store<Query>;
   readQuery?: () => Query;
+  readOrigin?: () => LocationOrigin | undefined;
   navigate: EventCallable<NavigatePayload>;
 }
 
@@ -31,6 +33,7 @@ export function trackQueryFactory({
   activeRoutes,
   query,
   readQuery = () => ({}),
+  readOrigin = () => undefined,
   navigate
 }: TrackQueryFactoryConfig) {
   return function trackQuery<Parameters>(
@@ -42,6 +45,10 @@ export function trackQueryFactory({
     });
     const entered = event<Parameters>();
     const exited = event<void>();
+    const enteredExternally = event<Parameters>();
+    const enteredProgrammatically = event<Parameters>();
+    const exitedExternally = event<void>();
+    const exitedProgrammatically = event<void>();
     const enter = event<Parameters>();
     const exit = event<{ ignoreParams: string[] } | void>();
 
@@ -60,12 +67,24 @@ export function trackQueryFactory({
 
         writeStore(entryState, { entered: true, key: nextKey });
         void entered(parsed.data);
+
+        if (readOrigin() === "programmatic") {
+          void enteredProgrammatically(parsed.data);
+        } else {
+          void enteredExternally(parsed.data);
+        }
         return;
       }
 
       if (entryState.value.entered) {
         writeStore(entryState, { entered: false, key: null });
         void exited();
+
+        if (readOrigin() === "programmatic") {
+          void exitedProgrammatically();
+        } else {
+          void exitedExternally();
+        }
       }
     };
 
@@ -123,6 +142,10 @@ export function trackQueryFactory({
     return {
       entered,
       exited,
+      enteredExternally,
+      enteredProgrammatically,
+      exitedExternally,
+      exitedProgrammatically,
       enter,
       exit
     };

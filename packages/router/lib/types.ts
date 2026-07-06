@@ -22,16 +22,10 @@ export type RouteOpenedPayload<T> = [T] extends [void]
   ? void | OpenPayloadBase
   : { params: T } & OpenPayloadBase;
 
-export type RouteActivationCause =
-  | { type: "route.open"; route: Route<any>; id: symbol }
-  | { type: "history"; source: "initial" | "push" | "replace" | "pop" }
-  | { type: "redirect"; from: Route<any>; id: symbol };
-
 export type InternalOpenedPayload<T> = OpenPayloadBase & {
   params?: T;
   navigate?: boolean;
   skipBeforeOpen?: boolean;
-  causedBy?: RouteActivationCause;
 };
 
 export type RouteBeforeOpen<T extends object | void = void> =
@@ -123,13 +117,24 @@ export interface NavigatePayload {
   query?: Query;
   path?: string;
   replace?: boolean;
-  causedBy?: RouteActivationCause;
 }
+
+export type LocationOrigin = "external" | "programmatic";
 
 export interface LocationState {
   path: string;
   query: Query;
-  causedBy: RouteActivationCause | undefined;
+  /**
+   * Where this location change came from:
+   * - `"external"` — history-driven (initial load, back/forward, manual URL) —
+   *   the router reacts to it and runs `beforeOpen` guards;
+   * - `"programmatic"` — the echo of a router-initiated `navigate`/`route.open`
+   *   whose guards already ran, so activation skips them.
+   *
+   * Classified structurally (by comparing against the last URL the router wrote),
+   * not threaded through payloads.
+   */
+  origin?: LocationOrigin | undefined;
 }
 
 export interface RouterLocation {
@@ -247,4 +252,18 @@ export interface QueryTracker<Parameters> {
   readonly exited: Event<void>;
   readonly enter: EventCallable<Parameters>;
   readonly exit: EventCallable<{ ignoreParams: string[] } | void>;
+
+  /**
+   * `entered`/`exited` split by the origin of the query change:
+   * - `*Externally` — a side effect of a history-driven URL change (initial
+   *   load, back/forward, manual URL edit);
+   * - `*Programmatically` — the router itself changed the query (`enter`/`exit`
+   *   or a `navigate`).
+   *
+   * `entered`/`exited` still fire in both cases; these are the explicit split.
+   */
+  readonly enteredExternally: Event<Parameters>;
+  readonly enteredProgrammatically: Event<Parameters>;
+  readonly exitedExternally: Event<void>;
+  readonly exitedProgrammatically: Event<void>;
 }

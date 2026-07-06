@@ -1,10 +1,8 @@
 import { run, type Scope, type StoreWritable } from "@virentia/core";
 import type {
-  InternalRoute,
   PathlessRoute,
   PathRoute,
   Route,
-  RouteActivationCause,
   Router
 } from "./types";
 
@@ -58,35 +56,6 @@ export function writeStore(target: StoreWritable<any>, value: unknown, scope?: S
 
 export function normalizePayload<T>(payload: T | void): T {
   return (payload ?? {}) as T;
-}
-
-export function createRouteOpenCause(route: Route<any>): RouteActivationCause {
-  return {
-    type: "route.open",
-    route,
-    id: Symbol("virentia.router.route.open")
-  };
-}
-
-export function shouldSkipBeforeOpenForCause(
-  route: InternalRoute<any>,
-  causedBy: RouteActivationCause | undefined,
-): boolean {
-  if (causedBy?.type !== "route.open") {
-    return false;
-  }
-
-  let cursor: Route<any> | undefined = causedBy.route;
-
-  while (cursor) {
-    if (cursor === route) {
-      return true;
-    }
-
-    cursor = cursor.parent;
-  }
-
-  return false;
 }
 
 export function isPromiseLike(value: unknown): value is PromiseLike<unknown> {

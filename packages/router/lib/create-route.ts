@@ -20,7 +20,7 @@ import type {
   RouteOpenedPayload,
   RoutePreloader
 } from "./types";
-import { createRouteOpenCause, writeStore } from "./utils";
+import { writeStore } from "./utils";
 
 type WithBaseRouteConfig<T = object> = T & {
   parent?: Route<any>;
@@ -48,6 +48,9 @@ export function createRoute<Params extends object | void = void>(
 
   const params = store<Params>(defaultParams);
   const isOpened = store<boolean>(false);
+  // Identity of the current activation (params + query). Lets the projection be
+  // idempotent: re-applying the same location does not re-run activation/opened.
+  const activationKey = store<string | null>(null);
   const open = event<RouteOpenedPayload<Params>>();
   const closed = event<void>();
   const opened = event<InternalOpenedPayload<Params>>();
@@ -119,7 +122,7 @@ export function createRoute<Params extends object | void = void>(
   reaction({
     on: open,
     run(payload) {
-      const normalized = normalizeRoutePayload(payload, route);
+      const normalized = normalizeRoutePayload(payload);
 
       void openFx(normalized);
     }
@@ -133,6 +136,7 @@ export function createRoute<Params extends object | void = void>(
       }
 
       writeStore(isOpened, false);
+      writeStore(activationKey, null);
       void closed();
     }
   });
@@ -168,6 +172,15 @@ export function createRoute<Params extends object | void = void>(
     payload: InternalOpenedPayload<Params>,
     inRouteScope: ScopedRunner,
   ): Promise<InternalOpenedPayload<Params>> {
+    const nextKey = createActivationKey(payload, defaultParams);
+    const alreadyActive = inRouteScope(
+      () => isOpened.value && activationKey.value === nextKey,
+    );
+
+    if (alreadyActive) {
+      return payload;
+    }
+
     await runPreloaders(inRouteScope);
 
     if (!payload.skipBeforeOpen) {
@@ -194,6 +207,7 @@ export function createRoute<Params extends object | void = void>(
 
     inRouteScope(() => {
       writeStore(params, readPayloadParams(payload, defaultParams));
+      writeStore(activationKey, nextKey);
       writeStore(isOpened, true);
 
       if (typeof window === "undefined") {
@@ -226,7 +240,6 @@ export function createRoute<Params extends object | void = void>(
 
 function normalizeRoutePayload<T extends object | void>(
   payload: RouteOpenedPayload<T>,
-  route: Route<any>,
 ): InternalOpenedPayload<T> {
   const normalized =
     payload && typeof payload === "object"
@@ -234,8 +247,7 @@ function normalizeRoutePayload<T extends object | void>(
       : ({} as OpenPayloadBase);
 
   return {
-    ...normalized,
-    causedBy: createRouteOpenCause(route)
+    ...normalized
   } as InternalOpenedPayload<T>;
 }
 
@@ -248,4 +260,14 @@ function readPayloadParams<T extends object | void>(
   }
 
   return fallback;
+}
+
+function createActivationKey<T extends object | void>(
+  payload: InternalOpenedPayload<T>,
+  fallback: T,
+): string {
+  return JSON.stringify({
+    params: readPayloadParams(payload, fallback),
+    query: payload.query ?? {}
+  });
 }
