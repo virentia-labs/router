@@ -1,5 +1,11 @@
 # @virentia/router-paths
 
+## 0.1.2
+
+### Patch Changes
+
+- chore: bump virentia
+
 ## 0.1.1
 
 ### Patch Changes
