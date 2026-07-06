@@ -14,7 +14,6 @@ import type {
   RouteOpenedPayload,
   VirtualRoute
 } from "./types";
-import { writeStore } from "./utils";
 
 type BeforeOpenUnit<T extends object | void = void> =
   | EventCallable<RouteOpenedPayload<T>>
@@ -42,7 +41,7 @@ export function chainRoute<T extends object | void = void>(
   async function runBeforeOpen(payload: RouteOpenedPayload<T>): Promise<void> {
     const inRouteScope = scoped();
 
-    writeStore(isPendingState, true);
+    isPendingState.value = true;
 
     try {
       if (asyncImport) {
@@ -54,7 +53,7 @@ export function chainRoute<T extends object | void = void>(
       }
     } finally {
       inRouteScope(() => {
-        writeStore(isPendingState, false);
+        isPendingState.value = false;
       });
     }
   }
@@ -68,7 +67,7 @@ export function chainRoute<T extends object | void = void>(
     on: route.opened,
     run(payload: any) {
       lastPayload.value = payload as RouteOpenedPayload<T>;
-      writeStore(virtualRoute.params, transformer(payload as RouteOpenedPayload<T>));
+      virtualRoute.params.value = transformer(payload as RouteOpenedPayload<T>);
       void runBeforeOpen(payload as RouteOpenedPayload<T>);
     }
   });

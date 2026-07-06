@@ -1,6 +1,5 @@
 import { computed, event, reaction, store, type Store } from "@virentia/core";
 import type { VirtualRoute } from "./types";
-import { writeStore } from "./utils";
 
 interface VirtualRouteOptions<T, TransformerResult> {
   isPending?: Store<boolean>;
@@ -29,8 +28,8 @@ export function createVirtualRoute<T = void, TransformerResult = void>(
   reaction({
     on: open,
     run(payload) {
-      writeStore(params, transformer(payload));
-      writeStore(isOpened, true);
+      params.value = transformer(payload);
+      isOpened.value = true;
 
       if (typeof window === "undefined") {
         void openedOnServer(payload);
@@ -49,7 +48,7 @@ export function createVirtualRoute<T = void, TransformerResult = void>(
         return;
       }
 
-      writeStore(isOpened, false);
+      isOpened.value = false;
       void closed();
     }
   });

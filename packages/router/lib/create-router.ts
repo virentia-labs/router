@@ -56,6 +56,9 @@ export function createRouter(config: CreateRouterConfig): Router {
     query: controls.query,
     readQuery: () => ({ ...controls.locationState.value.query }),
     readOrigin: () => controls.locationState.value.origin,
+    // Derive the active set from the same location snapshot as readQuery, so the
+    // tracker never observes a fresh query against a stale active set.
+    readActiveRoutes: () => deriveDesired(controls.locationState.value.path).map(({ route }) => route),
     navigate: controls.navigate
   });
 

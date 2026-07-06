@@ -7,7 +7,6 @@ import type {
   QueryTrackerConfig,
   Route
 } from "./types";
-import { writeStore } from "./utils";
 
 function routeIsActive(forRoutes: Route<any>[] | undefined, activeRoutes: Route<any>[]) {
   if (!forRoutes) {
@@ -17,7 +16,7 @@ function routeIsActive(forRoutes: Route<any>[] | undefined, activeRoutes: Route<
   return forRoutes.some((route) => activeRoutes.includes(route));
 }
 
-function readActiveRoutes(activeRoutes: Store<Route<any>[]>): Route<any>[] {
+function readActiveRoutesFromStore(activeRoutes: Store<Route<any>[]>): Route<any>[] {
   return activeRoutes.value.filter((route): route is Route<any> => Boolean(route));
 }
 
@@ -26,6 +25,13 @@ interface TrackQueryFactoryConfig {
   query: Store<Query>;
   readQuery?: () => Query;
   readOrigin?: () => LocationOrigin | undefined;
+  /**
+   * Reads the active routes for the current location. Injected so the tracker
+   * can read them from the same location snapshot as `readQuery` — deriving
+   * "active" from a separate computed chain lets query and active-set disagree
+   * for a propagation frame, which fires a spurious enter/exit.
+   */
+  readActiveRoutes?: () => Route<any>[];
   navigate: EventCallable<NavigatePayload>;
 }
 
@@ -34,6 +40,7 @@ export function trackQueryFactory({
   query,
   readQuery = () => ({}),
   readOrigin = () => undefined,
+  readActiveRoutes = () => readActiveRoutesFromStore(activeRoutes),
   navigate
 }: TrackQueryFactoryConfig) {
   return function trackQuery<Parameters>(
@@ -54,7 +61,7 @@ export function trackQueryFactory({
 
     const evaluate = () => {
       const currentQuery = readQuery();
-      const currentRoutes = readActiveRoutes(activeRoutes);
+      const currentRoutes = readActiveRoutes();
       const parsed = config.parameters.safeParse(currentQuery);
       const active = routeIsActive(config.forRoutes, currentRoutes) && parsed.success;
 
@@ -65,7 +72,7 @@ export function trackQueryFactory({
           return;
         }
 
-        writeStore(entryState, { entered: true, key: nextKey });
+        entryState.value = { entered: true, key: nextKey };
         void entered(parsed.data);
 
         if (readOrigin() === "programmatic") {
@@ -77,7 +84,7 @@ export function trackQueryFactory({
       }
 
       if (entryState.value.entered) {
-        writeStore(entryState, { entered: false, key: null });
+        entryState.value = { entered: false, key: null };
         void exited();
 
         if (readOrigin() === "programmatic") {
@@ -96,7 +103,7 @@ export function trackQueryFactory({
 
       reaction(() => {
         readQuery();
-        readActiveRoutes(activeRoutes);
+        readActiveRoutes();
 
         if (entryState.value.entered) {
           evaluate();

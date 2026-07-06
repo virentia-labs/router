@@ -1,4 +1,3 @@
-import { run, type Scope, type StoreWritable } from "@virentia/core";
 import type {
   PathlessRoute,
   PathRoute,
@@ -38,31 +37,3 @@ export const is = {
     );
   }
 };
-
-export function writeStore(target: StoreWritable<any>, value: unknown, scope?: Scope): void {
-  void run(
-    scope
-      ? {
-          unit: target.node,
-          payload: value,
-          scope
-        }
-      : {
-          unit: target.node,
-          payload: value
-        },
-  );
-}
-
-export function normalizePayload<T>(payload: T | void): T {
-  return (payload ?? {}) as T;
-}
-
-export function isPromiseLike(value: unknown): value is PromiseLike<unknown> {
-  return (
-    (typeof value === "object" || typeof value === "function") &&
-    value !== null &&
-    "then" in value &&
-    typeof (value as { then?: unknown }).then === "function"
-  );
-}

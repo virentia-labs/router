@@ -20,7 +20,6 @@ import type {
   RouteOpenedPayload,
   RoutePreloader
 } from "./types";
-import { writeStore } from "./utils";
 
 type WithBaseRouteConfig<T = object> = T & {
   parent?: Route<any>;
@@ -135,8 +134,8 @@ export function createRoute<Params extends object | void = void>(
         return;
       }
 
-      writeStore(isOpened, false);
-      writeStore(activationKey, null);
+      isOpened.value = false;
+      activationKey.value = null;
       void closed();
     }
   });
@@ -206,9 +205,9 @@ export function createRoute<Params extends object | void = void>(
     }
 
     inRouteScope(() => {
-      writeStore(params, readPayloadParams(payload, defaultParams));
-      writeStore(activationKey, nextKey);
-      writeStore(isOpened, true);
+      params.value = readPayloadParams(payload, defaultParams);
+      activationKey.value = nextKey;
+      isOpened.value = true;
 
       if (typeof window === "undefined") {
         void openedOnServer(payload);
