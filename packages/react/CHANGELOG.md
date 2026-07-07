@@ -1,5 +1,13 @@
 # @virentia/router-react
 
+## 0.3.1
+
+### Patch Changes
+
+- chore: bump virentia packages
+- Updated dependencies
+  - @virentia/router@0.3.1
+
 ## 0.3.0
 
 ### Minor Changes

@@ -1,4 +1,4 @@
-import { allSettled, scope, scoped } from "@virentia/core";
+import { scope, scoped } from "@virentia/core";
 import { createMemoryHistory } from "history";
 import { describe, expect, test } from "vitest";
 import { waitFor } from "@testing-library/react";
@@ -24,10 +24,7 @@ describe("nested routers", () => {
       routes: [mainRoutes.home, mainRoutes.settings, shopRouter]
     });
 
-    await allSettled(mainRouter.setHistory, {
-      scope: appScope,
-      payload: historyAdapter(createMemoryHistory({ initialEntries: ["/"] }))
-    });
+    await scoped(appScope, () => mainRouter.setHistory(historyAdapter(createMemoryHistory({ initialEntries: ["/"] }))));
 
     const ShopRoutesView = routesView({
       routes: [
@@ -104,10 +101,7 @@ describe("nested routers", () => {
       routes: [mainRoutes.home, shopRouter, blogRouter]
     });
 
-    await allSettled(mainRouter.setHistory, {
-      scope: appScope,
-      payload: historyAdapter(createMemoryHistory({ initialEntries: ["/"] }))
-    });
+    await scoped(appScope, () => mainRouter.setHistory(historyAdapter(createMemoryHistory({ initialEntries: ["/"] }))));
 
     const ShopRoutesView = routesView({
       routes: [
@@ -175,10 +169,7 @@ describe("nested routers", () => {
       routes: [moduleARoute, moduleBRoute]
     });
 
-    await allSettled(mainRouter.setHistory, {
-      scope: appScope,
-      payload: historyAdapter(createMemoryHistory({ initialEntries: ["/"] }))
-    });
+    await scoped(appScope, () => mainRouter.setHistory(historyAdapter(createMemoryHistory({ initialEntries: ["/"] }))));
 
     const MainRoutesView = routesView({
       routes: [
@@ -232,10 +223,7 @@ describe("nested routers", () => {
       routes: [mainRoutes.workspace, projectRouter]
     });
 
-    await allSettled(mainRouter.setHistory, {
-      scope: appScope,
-      payload: historyAdapter(createMemoryHistory({ initialEntries: ["/workspace/ws-123"] }))
-    });
+    await scoped(appScope, () => mainRouter.setHistory(historyAdapter(createMemoryHistory({ initialEntries: ["/workspace/ws-123"] }))));
 
     const ProjectRoutesView = routesView({
       routes: [
@@ -299,10 +287,7 @@ describe("nested routers", () => {
       routes: [moduleARouter, moduleBRouter]
     });
 
-    await allSettled(mainRouter.setHistory, {
-      scope: appScope,
-      payload: historyAdapter(createMemoryHistory({ initialEntries: ["/"] }))
-    });
+    await scoped(appScope, () => mainRouter.setHistory(historyAdapter(createMemoryHistory({ initialEntries: ["/"] }))));
 
     const ModuleARoutesView = routesView({
       routes: [

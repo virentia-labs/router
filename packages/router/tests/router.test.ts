@@ -1,4 +1,4 @@
-import { allSettled, scope, scoped } from "@virentia/core";
+import { scope, scoped } from "@virentia/core";
 import { createMemoryHistory } from "history";
 import { describe, expect, it, vi } from "vitest";
 import { route, router, historyAdapter } from "../lib";
@@ -12,10 +12,7 @@ describe("appRouter", () => {
     const history = createMemoryHistory();
     const appRouter = router({ routes: [one, two] });
 
-    await allSettled(appRouter.setHistory, {
-      scope: appScope,
-      payload: historyAdapter(history),
-    });
+    await scoped(appScope, () => appRouter.setHistory(historyAdapter(history)));
 
     history.push("/one");
 
@@ -35,10 +32,7 @@ describe("appRouter", () => {
     const history = createMemoryHistory();
     const appRouter = router({ routes: [one, two] });
 
-    await allSettled(appRouter.setHistory, {
-      scope: appScope,
-      payload: historyAdapter(history),
-    });
+    await scoped(appScope, () => appRouter.setHistory(historyAdapter(history)));
 
     history.push("/one");
     await vi.waitFor(() =>
@@ -66,24 +60,15 @@ describe("appRouter", () => {
     const history = createMemoryHistory();
     const appRouter = router({ routes: [one, two, nested] });
 
-    await allSettled(appRouter.setHistory, {
-      scope: appScope,
-      payload: historyAdapter(history),
-    });
+    await scoped(appScope, () => appRouter.setHistory(historyAdapter(history)));
 
-    await allSettled(one.open, { scope: appScope, payload: {} });
+    await scoped(appScope, () => one.open({}));
     expect(history.location.pathname).toBe("/one");
 
-    await allSettled(two.open, {
-      scope: appScope,
-      payload: { params: { id: "hello" } },
-    });
+    await scoped(appScope, () => two.open({ params: { id: "hello" } }));
     expect(history.location.pathname).toBe("/two/hello");
 
-    await allSettled(nested.open, {
-      scope: appScope,
-      payload: { params: { id: "hello" } },
-    });
+    await scoped(appScope, () => nested.open({ params: { id: "hello" } }));
     expect(history.location.pathname).toBe("/one/nested/hello");
   });
 
@@ -93,10 +78,7 @@ describe("appRouter", () => {
     const history = createMemoryHistory();
     const appRouter = router({ routes: [authRoute] });
 
-    await allSettled(appRouter.setHistory, {
-      scope: appScope,
-      payload: historyAdapter(history),
-    });
+    await scoped(appScope, () => appRouter.setHistory(historyAdapter(history)));
 
     history.push("/auth?login=movpushmov&password=123&retry=1&retry=1");
 
@@ -116,17 +98,13 @@ describe("appRouter", () => {
     const history = createMemoryHistory();
     const appRouter = router({ routes: [authRoute] });
 
-    await allSettled(appRouter.setHistory, {
-      scope: appScope,
-      payload: historyAdapter(history),
-    });
+    await scoped(appScope, () => appRouter.setHistory(historyAdapter(history)));
 
-    await allSettled(authRoute.open, {
-      scope: appScope,
-      payload: {
+    await scoped(appScope, () =>
+      authRoute.open({
         query: { login: "movpushmov", password: "123", retry: ["1", "1"] },
-      },
-    });
+      }),
+    );
 
     expect(history.location.pathname).toBe("/auth");
     expect(history.location.search).toBe(
@@ -146,10 +124,7 @@ describe("appRouter", () => {
     });
     const appRouter = router({ routes: [profileRoute] });
 
-    await allSettled(appRouter.setHistory, {
-      scope: appScope,
-      payload: historyAdapter(history),
-    });
+    await scoped(appScope, () => appRouter.setHistory(historyAdapter(history)));
 
     expect(beforeOpen).toHaveBeenCalledTimes(1);
     expect(beforeOpen).toHaveBeenCalledWith(
@@ -175,10 +150,7 @@ describe("appRouter", () => {
     const history = createMemoryHistory({ initialEntries: ["/step1"] });
     const appRouter = router({ routes: [step1, step2] });
 
-    await allSettled(appRouter.setHistory, {
-      scope: appScope,
-      payload: historyAdapter(history),
-    });
+    await scoped(appScope, () => appRouter.setHistory(historyAdapter(history)));
 
     expect(step1BeforeOpen).toHaveBeenCalledTimes(1);
 
@@ -197,16 +169,10 @@ describe("appRouter", () => {
     const history = createMemoryHistory({ initialEntries: ["/"] });
     const appRouter = router({ routes: [home, profile] });
 
-    await allSettled(appRouter.setHistory, {
-      scope: appScope,
-      payload: historyAdapter(history),
-    });
+    await scoped(appScope, () => appRouter.setHistory(historyAdapter(history)));
     beforeOpen.mockClear();
 
-    await allSettled(profile.open, {
-      scope: appScope,
-      payload: { params: { id: "movpushmov" } },
-    });
+    await scoped(appScope, () => profile.open({ params: { id: "movpushmov" } }));
 
     expect(history.location.pathname).toBe("/profile/movpushmov");
     expect(beforeOpen).toHaveBeenCalledTimes(1);
@@ -227,13 +193,10 @@ describe("appRouter", () => {
     const history = createMemoryHistory({ initialEntries: ["/step1"] });
     const appRouter = router({ routes: [step1, step2] });
 
-    await allSettled(appRouter.setHistory, {
-      scope: appScope,
-      payload: historyAdapter(history),
-    });
+    await scoped(appScope, () => appRouter.setHistory(historyAdapter(history)));
 
     history.block(() => false);
-    await allSettled(step2.open, { scope: appScope, payload: {} });
+    await scoped(appScope, () => step2.open({}));
 
     scoped(appScope, () => {
       expect(appRouter.activeRoutes.value[0]).toBe(step1);
@@ -249,10 +212,7 @@ describe("appRouter", () => {
     const history = createMemoryHistory({ initialEntries: ["/parent/child"] });
     const appRouter = router({ routes: [parent, child] });
 
-    await allSettled(appRouter.setHistory, {
-      scope: appScope,
-      payload: historyAdapter(history),
-    });
+    await scoped(appScope, () => appRouter.setHistory(historyAdapter(history)));
 
     await vi.waitFor(() =>
       scoped(appScope, () => {
@@ -280,12 +240,9 @@ describe("appRouter", () => {
     const appScope = scope();
     const history = createMemoryHistory();
 
-    await allSettled(mainRouter.setHistory, {
-      scope: appScope,
-      payload: historyAdapter(history),
-    });
+    await scoped(appScope, () => mainRouter.setHistory(historyAdapter(history)));
 
-    await allSettled(mainRoutes.home.open, { scope: appScope, payload: {} });
+    await scoped(appScope, () => mainRoutes.home.open({}));
 
     await vi.waitFor(() =>
       scoped(appScope, () => {
@@ -294,10 +251,7 @@ describe("appRouter", () => {
       }),
     );
 
-    await allSettled(settingsModalRoutes.general.open, {
-      scope: appScope,
-      payload: {},
-    });
+    await scoped(appScope, () => settingsModalRoutes.general.open({}));
 
     await vi.waitFor(() =>
       scoped(appScope, () => {
@@ -306,10 +260,7 @@ describe("appRouter", () => {
       }),
     );
 
-    await allSettled(settingsModalRoutes.security.open, {
-      scope: appScope,
-      payload: {},
-    });
+    await scoped(appScope, () => settingsModalRoutes.security.open({}));
 
     await vi.waitFor(() =>
       scoped(appScope, () => {
@@ -326,10 +277,9 @@ describe("appRouter", () => {
     const appScope = scope();
     const openedCalls = watchCalls(homeRoute.opened, appScope);
 
-    await allSettled(appRouter.setHistory, {
-      scope: appScope,
-      payload: historyAdapter(createMemoryHistory()),
-    });
+    await scoped(appScope, () =>
+      appRouter.setHistory(historyAdapter(createMemoryHistory())),
+    );
 
     await vi.waitFor(() => expect(openedCalls).toHaveBeenCalledTimes(1));
   });
@@ -342,10 +292,7 @@ describe("appRouter", () => {
     const appRouter = router({ routes: [xRoute] });
     const opened = watchCalls(xRoute.opened, appScope);
 
-    await allSettled(appRouter.setHistory, {
-      scope: appScope,
-      payload: historyAdapter(history),
-    });
+    await scoped(appScope, () => appRouter.setHistory(historyAdapter(history)));
 
     history.push("/x");
     await vi.waitFor(() => expect(opened).toHaveBeenCalledTimes(1));
@@ -381,10 +328,7 @@ describe("appRouter", () => {
     const history = createMemoryHistory({ initialEntries: ["/"] });
     const appRouter = router({ routes: [home, profile] });
 
-    await allSettled(appRouter.setHistory, {
-      scope: appScope,
-      payload: historyAdapter(history),
-    });
+    await scoped(appScope, () => appRouter.setHistory(historyAdapter(history)));
 
     await vi.waitFor(() =>
       scoped(appScope, () => {
@@ -392,10 +336,7 @@ describe("appRouter", () => {
       }),
     );
 
-    const opening = allSettled(profile.open, {
-      scope: appScope,
-      payload: { params: { id: "42" } },
-    });
+    const opening = scoped(appScope, () => profile.open({ params: { id: "42" } }));
 
     await Promise.resolve();
     expect(gate.release).toBeTypeOf("function");

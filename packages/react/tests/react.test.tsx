@@ -1,4 +1,4 @@
-import { allSettled, event, reaction, scope, scoped, store } from "@virentia/core";
+import { event, reaction, scope, scoped, store } from "@virentia/core";
 import { ScopeProvider } from "@virentia/react";
 import { act, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { createMemoryHistory } from "history";
@@ -28,10 +28,7 @@ describe("react bindings", () => {
     const appRouter = router({ routes: [route1, route2] });
     const history = createMemoryHistory();
 
-    await allSettled(appRouter.setHistory, {
-      scope: appScope,
-      payload: historyAdapter(history)
-    });
+    await scoped(appScope, () => appRouter.setHistory(historyAdapter(history)));
 
     const RoutesView = routesView({
       routes: [
@@ -65,10 +62,7 @@ describe("react bindings", () => {
     const appRouter = router({ routes: [route1, route2] });
     const history = createMemoryHistory({ initialEntries: ["/app"] });
 
-    await allSettled(appRouter.setHistory, {
-      scope: appScope,
-      payload: historyAdapter(history)
-    });
+    await scoped(appScope, () => appRouter.setHistory(historyAdapter(history)));
 
     const RoutesView = routesView({
       routes: [
@@ -123,10 +117,7 @@ describe("react bindings", () => {
     const appScope = scope();
     const appRouter = router({ routes: [home, profile] });
 
-    await allSettled(appRouter.setHistory, {
-      scope: appScope,
-      payload: historyAdapter(createMemoryHistory({ initialEntries: ["/"] }))
-    });
+    await scoped(appScope, () => appRouter.setHistory(historyAdapter(createMemoryHistory({ initialEntries: ["/"] }))));
 
     const RoutesView = routesView({
       routes: [
@@ -163,10 +154,7 @@ describe("react bindings", () => {
     const appRouter = router({ routes: [home, profile] });
     const appScope = scope();
 
-    await allSettled(appRouter.setHistory, {
-      scope: appScope,
-      payload: historyAdapter(createMemoryHistory({ initialEntries: ["/"] }))
-    });
+    await scoped(appScope, () => appRouter.setHistory(historyAdapter(createMemoryHistory({ initialEntries: ["/"] }))));
 
     renderWithRouter(
       appRouter,
@@ -217,10 +205,7 @@ describe("react bindings", () => {
     const appScope = scope();
     const appRouter = router({ routes: [authRoute, profileRoute] });
 
-    await allSettled(appRouter.setHistory, {
-      scope: appScope,
-      payload: historyAdapter(createMemoryHistory({ initialEntries: ["/app"] }))
-    });
+    await scoped(appScope, () => appRouter.setHistory(historyAdapter(createMemoryHistory({ initialEntries: ["/app"] }))));
 
     const RoutesView = routesView({
       routes: [
@@ -242,8 +227,10 @@ describe("react bindings", () => {
     await waitFor(() => expect(screen.getByTestId("message").textContent).toBe("profile"));
 
     await act(async () => {
-      await allSettled(user, { scope: appScope, payload: null });
-      await allSettled(authRoute.open, { scope: appScope, payload: {} });
+      await scoped(appScope, () => {
+        user.value = null;
+      });
+      await scoped(appScope, () => authRoute.open({}));
     });
 
     await waitFor(() => expect(screen.getByTestId("message").textContent).toBe("auth"));
@@ -259,10 +246,7 @@ describe("react bindings", () => {
     const appScope = scope();
     const appRouter = router({ routes: [friendsRoute, profileRoute] });
 
-    await allSettled(appRouter.setHistory, {
-      scope: appScope,
-      payload: historyAdapter(createMemoryHistory({ initialEntries: ["/app"] }))
-    });
+    await scoped(appScope, () => appRouter.setHistory(historyAdapter(createMemoryHistory({ initialEntries: ["/app"] }))));
 
     const RoutesView = routesView({
       routes: [
@@ -299,10 +283,7 @@ describe("react bindings", () => {
       routes: [friendsRoute, profileRoute, authRoute]
     });
 
-    await allSettled(appRouter.setHistory, {
-      scope: appScope,
-      payload: historyAdapter(createMemoryHistory({ initialEntries: ["/auth"] }))
-    });
+    await scoped(appScope, () => appRouter.setHistory(historyAdapter(createMemoryHistory({ initialEntries: ["/auth"] }))));
 
     const ProfileLayout = (props: { children: ReactNode }) => (
       <>

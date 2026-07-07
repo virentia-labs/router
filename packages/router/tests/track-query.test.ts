@@ -1,4 +1,4 @@
-import { allSettled, event, scope, scoped } from "@virentia/core";
+import { event, scope, scoped } from "@virentia/core";
 import { createMemoryHistory } from "history";
 import { describe, expect, test, vi } from "vitest";
 import { route, router, historyAdapter, type Query, type QuerySchema } from "../lib";
@@ -15,10 +15,7 @@ async function prepare() {
     routes: [routes.home, routes.app]
   });
 
-  await allSettled(appRouter.setHistory, {
-    scope: appScope,
-    payload: historyAdapter(history)
-  });
+  await scoped(appScope, () => appRouter.setHistory(historyAdapter(history)));
 
   return { appScope, history, appRouter, routes };
 }
@@ -35,25 +32,16 @@ describe("trackQuery", () => {
     const enteredCalls = watchCalls(tracker.entered, appScope);
     const exitedCalls = watchCalls(tracker.exited, appScope);
 
-    await allSettled(appRouter.navigate, {
-      scope: appScope,
-      payload: { path: "/", query: { num: "1200" } }
-    });
+    await scoped(appScope, () => appRouter.navigate({ path: "/", query: { num: "1200" } }));
 
     await vi.waitFor(() => expect(enteredCalls).toHaveBeenCalledWith({ num: 1200 }));
 
-    await allSettled(appRouter.navigate, {
-      scope: appScope,
-      payload: { path: "/", query: { num: "hello" } }
-    });
+    await scoped(appScope, () => appRouter.navigate({ path: "/", query: { num: "hello" } }));
 
     await vi.waitFor(() => expect(exitedCalls).toHaveBeenCalledTimes(1));
     expect(enteredCalls).toHaveBeenCalledTimes(1);
 
-    await allSettled(appRouter.navigate, {
-      scope: appScope,
-      payload: { path: "/", query: { num: ["hello", "1200"] } }
-    });
+    await scoped(appScope, () => appRouter.navigate({ path: "/", query: { num: ["hello", "1200"] } }));
 
     expect(enteredCalls).toHaveBeenCalledTimes(1);
     expect(exitedCalls).toHaveBeenCalledTimes(1);
@@ -67,22 +55,13 @@ describe("trackQuery", () => {
     const enteredCalls = watchCalls(tracker.entered, appScope);
     const exitedCalls = watchCalls(tracker.exited, appScope);
 
-    await allSettled(appRouter.navigate, {
-      scope: appScope,
-      payload: { path: "/", query: { str: "1200" } }
-    });
+    await scoped(appScope, () => appRouter.navigate({ path: "/", query: { str: "1200" } }));
     await vi.waitFor(() => expect(enteredCalls).toHaveBeenCalledWith({ str: "1200" }));
 
-    await allSettled(appRouter.navigate, {
-      scope: appScope,
-      payload: { path: "/", query: { str: "hello" } }
-    });
+    await scoped(appScope, () => appRouter.navigate({ path: "/", query: { str: "hello" } }));
     await vi.waitFor(() => expect(enteredCalls).toHaveBeenCalledWith({ str: "hello" }));
 
-    await allSettled(appRouter.navigate, {
-      scope: appScope,
-      payload: { path: "/", query: { str: ["hello", "1200"] } }
-    });
+    await scoped(appScope, () => appRouter.navigate({ path: "/", query: { str: ["hello", "1200"] } }));
 
     await vi.waitFor(() => expect(exitedCalls).toHaveBeenCalledTimes(1));
     expect(enteredCalls).toHaveBeenCalledTimes(2);
@@ -96,28 +75,16 @@ describe("trackQuery", () => {
     const enteredCalls = watchCalls(tracker.entered, appScope);
     const exitedCalls = watchCalls(tracker.exited, appScope);
 
-    await allSettled(appRouter.navigate, {
-      scope: appScope,
-      payload: { path: "/", query: { any: "1200" } }
-    });
+    await scoped(appScope, () => appRouter.navigate({ path: "/", query: { any: "1200" } }));
     await vi.waitFor(() => expect(enteredCalls).toHaveBeenCalledWith({ any: "1200" }));
 
-    await allSettled(appRouter.navigate, {
-      scope: appScope,
-      payload: { path: "/", query: { any: "hello" } }
-    });
+    await scoped(appScope, () => appRouter.navigate({ path: "/", query: { any: "hello" } }));
     await vi.waitFor(() => expect(enteredCalls).toHaveBeenCalledWith({ any: "hello" }));
 
-    await allSettled(appRouter.navigate, {
-      scope: appScope,
-      payload: { path: "/", query: { any: ["hello", "1200"] } }
-    });
+    await scoped(appScope, () => appRouter.navigate({ path: "/", query: { any: ["hello", "1200"] } }));
     await vi.waitFor(() => expect(enteredCalls).toHaveBeenCalledWith({ any: ["hello", "1200"] }));
 
-    await allSettled(appRouter.navigate, {
-      scope: appScope,
-      payload: { path: "/", query: {} }
-    });
+    await scoped(appScope, () => appRouter.navigate({ path: "/", query: {} }));
 
     await vi.waitFor(() => expect(exitedCalls).toHaveBeenCalledTimes(1));
     expect(enteredCalls).toHaveBeenCalledTimes(3);
@@ -131,16 +98,10 @@ describe("trackQuery", () => {
     const enteredCalls = watchCalls(tracker.entered, appScope);
     const exitedCalls = watchCalls(tracker.exited, appScope);
 
-    await allSettled(appRouter.navigate, {
-      scope: appScope,
-      payload: { path: "/", query: { any: ["hello", "1200"] } }
-    });
+    await scoped(appScope, () => appRouter.navigate({ path: "/", query: { any: ["hello", "1200"] } }));
     await vi.waitFor(() => expect(enteredCalls).toHaveBeenCalledWith({ any: ["hello", "1200"] }));
 
-    await allSettled(appRouter.navigate, {
-      scope: appScope,
-      payload: { path: "/", query: {} }
-    });
+    await scoped(appScope, () => appRouter.navigate({ path: "/", query: {} }));
 
     await vi.waitFor(() => expect(exitedCalls).toHaveBeenCalledTimes(1));
     expect(enteredCalls).toHaveBeenCalledTimes(1);
@@ -166,30 +127,18 @@ describe("trackQuery", () => {
       ["false", false],
       ["true", true]
     ] as const) {
-      await allSettled(appRouter.navigate, {
-        scope: appScope,
-        payload: { path: "/", query: { bool: value } }
-      });
+      await scoped(appScope, () => appRouter.navigate({ path: "/", query: { bool: value } }));
       await vi.waitFor(() => expect(enteredCalls).toHaveBeenCalledWith({ bool: parsed }));
     }
 
-    await allSettled(appRouter.navigate, {
-      scope: appScope,
-      payload: { path: "/", query: { bool: "123" } }
-    });
+    await scoped(appScope, () => appRouter.navigate({ path: "/", query: { bool: "123" } }));
 
     await vi.waitFor(() => expect(exitedCalls).toHaveBeenCalledTimes(1));
     expect(enteredCalls).toHaveBeenCalledTimes(4);
 
-    await allSettled(appRouter.navigate, {
-      scope: appScope,
-      payload: { path: "/", query: { bool: "hello" } }
-    });
+    await scoped(appScope, () => appRouter.navigate({ path: "/", query: { bool: "hello" } }));
 
-    await allSettled(appRouter.navigate, {
-      scope: appScope,
-      payload: { path: "/", query: { bool: ["0", "hello"] } }
-    });
+    await scoped(appScope, () => appRouter.navigate({ path: "/", query: { bool: ["0", "hello"] } }));
 
     expect(enteredCalls).toHaveBeenCalledTimes(4);
     expect(exitedCalls).toHaveBeenCalledTimes(1);
@@ -204,28 +153,16 @@ describe("trackQuery", () => {
     const enteredCalls = watchCalls(tracker.entered, appScope);
     const exitedCalls = watchCalls(tracker.exited, appScope);
 
-    await allSettled(appRouter.navigate, {
-      scope: appScope,
-      payload: { path: "/not-found", query: { any: "123" } }
-    });
+    await scoped(appScope, () => appRouter.navigate({ path: "/not-found", query: { any: "123" } }));
     expect(enteredCalls).not.toHaveBeenCalled();
 
-    await allSettled(appRouter.navigate, {
-      scope: appScope,
-      payload: { path: "/app", query: { any: "123" } }
-    });
+    await scoped(appScope, () => appRouter.navigate({ path: "/app", query: { any: "123" } }));
     await vi.waitFor(() => expect(enteredCalls).toHaveBeenCalledTimes(1));
 
-    await allSettled(appRouter.navigate, {
-      scope: appScope,
-      payload: { path: "/", query: { any: "123" } }
-    });
+    await scoped(appScope, () => appRouter.navigate({ path: "/", query: { any: "123" } }));
     await vi.waitFor(() => expect(enteredCalls).toHaveBeenCalledTimes(2));
 
-    await allSettled(appRouter.navigate, {
-      scope: appScope,
-      payload: { path: "/not-found", query: { any: "123" } }
-    });
+    await scoped(appScope, () => appRouter.navigate({ path: "/not-found", query: { any: "123" } }));
     await vi.waitFor(() => expect(exitedCalls).toHaveBeenCalledTimes(1));
   });
 
@@ -237,18 +174,12 @@ describe("trackQuery", () => {
     });
     const exitedCalls = watchCalls(tracker.exited, appScope);
 
-    await allSettled(appRouter.navigate, {
-      scope: appScope,
-      payload: { path: "/not-found", query: { any: "123" } }
-    });
-    await allSettled(tracker.exit, { scope: appScope, payload: undefined });
+    await scoped(appScope, () => appRouter.navigate({ path: "/not-found", query: { any: "123" } }));
+    await scoped(appScope, () => tracker.exit(undefined));
     expect(exitedCalls).not.toHaveBeenCalled();
 
-    await allSettled(appRouter.navigate, {
-      scope: appScope,
-      payload: { path: "/", query: { any: "123", uid: "hi!" } }
-    });
-    await allSettled(tracker.exit, { scope: appScope, payload: undefined });
+    await scoped(appScope, () => appRouter.navigate({ path: "/", query: { any: "123", uid: "hi!" } }));
+    await scoped(appScope, () => tracker.exit(undefined));
 
     await vi.waitFor(() => expect(exitedCalls).toHaveBeenCalled());
     scoped(appScope, () => {
@@ -265,21 +196,12 @@ describe("trackQuery", () => {
     });
     const exitedCalls = watchCalls(tracker.exited, appScope);
 
-    await allSettled(appRouter.navigate, {
-      scope: appScope,
-      payload: { path: "/not-found", query: { any: "123" } }
-    });
-    await allSettled(tracker.exit, { scope: appScope, payload: undefined });
+    await scoped(appScope, () => appRouter.navigate({ path: "/not-found", query: { any: "123" } }));
+    await scoped(appScope, () => tracker.exit(undefined));
     expect(exitedCalls).not.toHaveBeenCalled();
 
-    await allSettled(appRouter.navigate, {
-      scope: appScope,
-      payload: { path: "/", query: { any: "123", uid: "hi!" } }
-    });
-    await allSettled(tracker.exit, {
-      scope: appScope,
-      payload: { ignoreParams: ["uid"] }
-    });
+    await scoped(appScope, () => appRouter.navigate({ path: "/", query: { any: "123", uid: "hi!" } }));
+    await scoped(appScope, () => tracker.exit({ ignoreParams: ["uid"] }));
 
     await vi.waitFor(() => expect(exitedCalls).toHaveBeenCalled());
     scoped(appScope, () => {
@@ -299,10 +221,7 @@ describe("trackQuery", () => {
       forRoutes: [routes.app, routes.home]
     });
 
-    await allSettled(tracker.enter, {
-      scope: appScope,
-      payload: { id: 0, role: "user" }
-    });
+    await scoped(appScope, () => tracker.enter({ id: 0, role: "user" }));
 
     scoped(appScope, () => {
       expect(appRouter.query.value.id).toBe("0");
@@ -310,10 +229,7 @@ describe("trackQuery", () => {
     });
     expect(history.location.search).toBe("?id=0&role=user");
 
-    await allSettled(tracker.enter, {
-      scope: appScope,
-      payload: { id: 1, role: "admin" }
-    });
+    await scoped(appScope, () => tracker.enter({ id: 1, role: "admin" }));
 
     scoped(appScope, () => {
       expect(appRouter.query.value.id).toBe("1");
@@ -331,16 +247,13 @@ describe("trackQuery", () => {
     });
     const enteredCalls = watchCalls(tracker.entered, appScope);
 
-    await allSettled(routes.app.open, { scope: appScope, payload: {} });
-    await allSettled(routes.home.open, { scope: appScope, payload: {} });
-    await allSettled(routes.home.open, {
-      scope: appScope,
-      payload: { query: { id: "123" } }
-    });
+    await scoped(appScope, () => routes.app.open({}));
+    await scoped(appScope, () => routes.home.open({}));
+    await scoped(appScope, () => routes.home.open({ query: { id: "123" } }));
 
     expect(enteredCalls).not.toHaveBeenCalled();
 
-    await allSettled(check, { scope: appScope });
+    await scoped(appScope, () => check());
 
     expect(enteredCalls).toHaveBeenCalledWith({ id: "123" });
   });

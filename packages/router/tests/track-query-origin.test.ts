@@ -1,4 +1,4 @@
-import { allSettled, scope, scoped } from "@virentia/core";
+import { scope, scoped } from "@virentia/core";
 import { createMemoryHistory } from "history";
 import { describe, expect, test, vi } from "vitest";
 import { route, router, historyAdapter, type Query, type QuerySchema } from "../lib";
@@ -15,10 +15,7 @@ async function prepare() {
     routes: [routes.home, routes.app]
   });
 
-  await allSettled(appRouter.setHistory, {
-    scope: appScope,
-    payload: historyAdapter(history)
-  });
+  await scoped(appScope, () => appRouter.setHistory(historyAdapter(history)));
 
   return { appScope, history, appRouter, routes };
 }
@@ -52,7 +49,7 @@ describe("trackQuery origin split", () => {
     const externally = watchCalls(tracker.enteredExternally, appScope);
     const programmatically = watchCalls(tracker.enteredProgrammatically, appScope);
 
-    await allSettled(tracker.enter, { scope: appScope, payload: { any: "123" } });
+    await scoped(appScope, () => tracker.enter({ any: "123" }));
 
     await vi.waitFor(() => expect(programmatically).toHaveBeenCalledWith({ any: "123" }));
     expect(entered).toHaveBeenCalledWith({ any: "123" });
@@ -69,7 +66,7 @@ describe("trackQuery origin split", () => {
     history.push("/?any=123");
     await vi.waitFor(() => scoped(appScope, () => expect(appRouter.query.value.any).toBe("123")));
 
-    await allSettled(tracker.exit, { scope: appScope, payload: undefined });
+    await scoped(appScope, () => tracker.exit(undefined));
 
     await vi.waitFor(() => expect(programmatically).toHaveBeenCalled());
     expect(exited).toHaveBeenCalled();

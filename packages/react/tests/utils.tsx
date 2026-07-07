@@ -1,4 +1,4 @@
-import { allSettled, type EventCallable, type Scope } from "@virentia/core";
+import { scoped, type EventCallable, type Scope } from "@virentia/core";
 import { ScopeProvider } from "@virentia/react";
 import { act, render, waitFor, type RenderResult } from "@testing-library/react";
 import type { ReactNode } from "react";
@@ -27,10 +27,7 @@ export async function openRoute(
   payload: any = {},
 ) {
   await act(async () => {
-    await allSettled(route.open as EventCallable<any>, {
-      scope: appScope,
-      payload: payload as any
-    });
+    await scoped(appScope, () => (route.open as EventCallable<any>)(payload as any));
   });
 }
 
@@ -40,10 +37,7 @@ export async function callUnit<T>(
   payload: T,
 ) {
   await act(async () => {
-    await allSettled(unit as EventCallable<any>, {
-      scope: appScope,
-      payload: payload as any
-    });
+    await scoped(appScope, () => (unit as EventCallable<any>)(payload as any));
   });
 }
 

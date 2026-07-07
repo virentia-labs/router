@@ -1,4 +1,4 @@
-import { allSettled, scope, scoped } from "@virentia/core";
+import { scope, scoped } from "@virentia/core";
 import { createMemoryHistory } from "history";
 import { describe, expect, test } from "vitest";
 import { act, waitFor } from "@testing-library/react";
@@ -24,10 +24,7 @@ describe("Outlet", () => {
     const appScope = scope();
     const appRouter = router({ routes: [profileRoute, settingsRoute] });
 
-    await allSettled(appRouter.setHistory, {
-      scope: appScope,
-      payload: historyAdapter(createMemoryHistory({ initialEntries: ["/profile"] }))
-    });
+    await scoped(appScope, () => appRouter.setHistory(historyAdapter(createMemoryHistory({ initialEntries: ["/profile"] }))));
     await waitForOpened(appScope, profileRoute);
 
     const ProfileView = () => (
@@ -74,10 +71,7 @@ describe("Outlet", () => {
     const appScope = scope();
     const appRouter = router({ routes: [profileRoute, settingsRoute] });
 
-    await allSettled(appRouter.setHistory, {
-      scope: appScope,
-      payload: historyAdapter(createMemoryHistory({ initialEntries: ["/profile"] }))
-    });
+    await scoped(appScope, () => appRouter.setHistory(historyAdapter(createMemoryHistory({ initialEntries: ["/profile"] }))));
     await waitForOpened(appScope, profileRoute);
 
     const ProfileView = () => (
@@ -126,10 +120,7 @@ describe("Outlet", () => {
       routes: [profileRoute, settingsRoute, notificationsRoute]
     });
 
-    await allSettled(appRouter.setHistory, {
-      scope: appScope,
-      payload: historyAdapter(createMemoryHistory({ initialEntries: ["/profile"] }))
-    });
+    await scoped(appScope, () => appRouter.setHistory(historyAdapter(createMemoryHistory({ initialEntries: ["/profile"] }))));
     await waitForOpened(appScope, profileRoute);
 
     const ProfileView = () => (
@@ -190,10 +181,7 @@ describe("Outlet", () => {
     const appScope = scope();
     const appRouter = router({ routes: [dashboardRoute, settingsRoute] });
 
-    await allSettled(appRouter.setHistory, {
-      scope: appScope,
-      payload: historyAdapter(createMemoryHistory({ initialEntries: ["/dashboard"] }))
-    });
+    await scoped(appScope, () => appRouter.setHistory(historyAdapter(createMemoryHistory({ initialEntries: ["/dashboard"] }))));
     await waitForOpened(appScope, dashboardRoute);
 
     const DashboardView = () => (
@@ -247,10 +235,7 @@ describe("Outlet", () => {
     });
     const appScope = scope();
 
-    await allSettled(appRouter.setHistory, {
-      scope: appScope,
-      payload: historyAdapter(createMemoryHistory({ initialEntries: ["/profile"] }))
-    });
+    await scoped(appScope, () => appRouter.setHistory(historyAdapter(createMemoryHistory({ initialEntries: ["/profile"] }))));
     await waitForOpened(appScope, rootRoutes.profile);
 
     const ProfileView = () => (
@@ -326,10 +311,7 @@ describe("Outlet", () => {
     const appScope = scope();
     const appRouter = router({ routes: [profileRoute, settingsRoute] });
 
-    await allSettled(appRouter.setHistory, {
-      scope: appScope,
-      payload: historyAdapter(createMemoryHistory({ initialEntries: ["/profile/settings"] }))
-    });
+    await scoped(appScope, () => appRouter.setHistory(historyAdapter(createMemoryHistory({ initialEntries: ["/profile/settings"] }))));
     await waitForOpened(appScope, settingsRoute);
 
     const RoutesView = routesView({

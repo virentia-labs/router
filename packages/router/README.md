@@ -34,7 +34,7 @@ Route params are inferred from path templates. `profileRoute.open` accepts a typ
 ## Router
 
 ```ts
-import { allSettled, scope } from "@virentia/core";
+import { scope, scoped } from "@virentia/core";
 import { createMemoryHistory } from "history";
 import { router, historyAdapter } from "@virentia/router";
 import { homeRoute, profileRoute } from "./routes";
@@ -46,15 +46,9 @@ const appRouter = router({
 const appScope = scope();
 const history = createMemoryHistory();
 
-await allSettled(appRouter.setHistory, {
-  scope: appScope,
-  payload: historyAdapter(history),
-});
+await scoped(appScope, () => appRouter.setHistory(historyAdapter(history)));
 
-await allSettled(profileRoute.open, {
-  scope: appScope,
-  payload: { params: { id: 42 } },
-});
+await scoped(appScope, () => profileRoute.open({ params: { id: 42 } }));
 
 history.location.pathname;
 // "/profile/42"

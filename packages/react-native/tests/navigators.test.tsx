@@ -1,6 +1,5 @@
 import { NavigationContainer } from "@react-navigation/native";
 import {
-  allSettled,
   scope,
   scoped
 } from "@virentia/core";
@@ -41,10 +40,7 @@ async function attachHistory(
   appScope: Scope,
   initialEntries: string[],
 ) {
-  await allSettled(appRouter.setHistory, {
-    scope: appScope,
-    payload: historyAdapter(createMemoryHistory({ initialEntries }))
-  });
+  await scoped(appScope, () => appRouter.setHistory(historyAdapter(createMemoryHistory({ initialEntries }))));
 }
 
 async function openRoute(
@@ -53,10 +49,7 @@ async function openRoute(
   payload: unknown = {},
 ) {
   await act(async () => {
-    await allSettled(route.open as EventCallable<any>, {
-      scope: appScope,
-      payload
-    });
+    await scoped(appScope, () => (route.open as EventCallable<any>)(payload));
   });
 }
 
@@ -193,10 +186,7 @@ describe("react-native stack navigator", () => {
     expect(screen.getByTestId("home-screen")).toBeTruthy();
 
     await act(async () => {
-      await allSettled(detailsRoute.open, {
-        scope: appScope,
-        payload: { id: "modal-1" }
-      });
+      await scoped(appScope, () => detailsRoute.open({ id: "modal-1" }));
     });
 
     await waitFor(() => {

@@ -1,4 +1,4 @@
-import { allSettled, scope } from "@virentia/core";
+import { scope, scoped } from "@virentia/core";
 import { createMemoryHistory } from "history";
 import { describe, expect, test } from "vitest";
 import { waitFor } from "@testing-library/react";
@@ -52,10 +52,7 @@ describe("complex nested router and outlet example", () => {
       ]
     });
 
-    await allSettled(mainRouter.setHistory, {
-      scope: appScope,
-      payload: historyAdapter(createMemoryHistory({ initialEntries: ["/"] }))
-    });
+    await scoped(appScope, () => mainRouter.setHistory(historyAdapter(createMemoryHistory({ initialEntries: ["/"] }))));
 
     const AuthRoutesView = routesView({
       routes: [

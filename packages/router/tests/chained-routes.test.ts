@@ -1,4 +1,4 @@
-import { allSettled, effect, event, reaction, scope, scoped } from "@virentia/core";
+import { effect, event, reaction, scope, scoped } from "@virentia/core";
 import { createMemoryHistory } from "history";
 import { describe, expect, test, vi } from "vitest";
 import {
@@ -17,10 +17,7 @@ describe("chained routes", () => {
     const profileRoute = route({ path: "/profile/:id" });
     const appRouter = router({ routes: [profileRoute] });
 
-    await allSettled(appRouter.setHistory, {
-      scope: appScope,
-      payload: historyAdapter(createMemoryHistory())
-    });
+    await scoped(appScope, () => appRouter.setHistory(historyAdapter(createMemoryHistory())));
 
     const authorized = event<void>();
     const rejected = event<void>();
@@ -42,19 +39,13 @@ describe("chained routes", () => {
       cancelOn: rejected
     });
 
-    await allSettled(profileRoute.open, {
-      scope: appScope,
-      payload: { params: { id: "0" } }
-    });
+    await scoped(appScope, () => profileRoute.open({ params: { id: "0" } }));
 
     scoped(appScope, () => {
       expect(virtual.isOpened.value).toBe(false);
     });
 
-    await allSettled(profileRoute.open, {
-      scope: appScope,
-      payload: { params: { id: "1" } }
-    });
+    await scoped(appScope, () => profileRoute.open({ params: { id: "1" } }));
 
     await vi.waitFor(() =>
       scoped(appScope, () => {
@@ -80,10 +71,7 @@ describe("chained routes", () => {
 
     expect(counter).not.toHaveBeenCalled();
 
-    await allSettled(vRoute.open, {
-      scope: appScope,
-      payload: { query: { test: "abc" } }
-    });
+    await scoped(appScope, () => vRoute.open({ query: { test: "abc" } }));
 
     expect(counter).toHaveBeenCalledWith({
       query: {

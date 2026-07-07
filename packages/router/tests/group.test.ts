@@ -1,4 +1,4 @@
-import { allSettled, scope, scoped } from "@virentia/core";
+import { scope, scoped } from "@virentia/core";
 import { describe, expect, test } from "vitest";
 import { virtualRoute, group, type RouteOpenedPayload } from "../lib";
 
@@ -13,14 +13,14 @@ describe("routes grouping", () => {
       expect(grouped.isOpened.value).toBe(false);
     });
 
-    await allSettled(route1.open, { scope: appScope, payload: undefined });
+    await scoped(appScope, () => route1.open(undefined));
 
     scoped(appScope, () => {
       expect(grouped.isOpened.value).toBe(true);
     });
 
-    await allSettled(route1.close, { scope: appScope, payload: undefined });
-    await allSettled(route2.open, { scope: appScope, payload: undefined });
+    await scoped(appScope, () => route1.close(undefined));
+    await scoped(appScope, () => route2.open(undefined));
 
     scoped(appScope, () => {
       expect(route1.isOpened.value).toBe(false);
@@ -34,20 +34,20 @@ describe("routes grouping", () => {
     const route2 = virtualRoute<RouteOpenedPayload<void>, void>();
     const grouped = group([route1, route2]);
 
-    await allSettled(route1.open, { scope: appScope, payload: undefined });
-    await allSettled(route2.open, { scope: appScope, payload: undefined });
+    await scoped(appScope, () => route1.open(undefined));
+    await scoped(appScope, () => route2.open(undefined));
 
     scoped(appScope, () => {
       expect(grouped.isOpened.value).toBe(true);
     });
 
-    await allSettled(route1.close, { scope: appScope, payload: undefined });
+    await scoped(appScope, () => route1.close(undefined));
 
     scoped(appScope, () => {
       expect(grouped.isOpened.value).toBe(true);
     });
 
-    await allSettled(route2.close, { scope: appScope, payload: undefined });
+    await scoped(appScope, () => route2.close(undefined));
 
     scoped(appScope, () => {
       expect(grouped.isOpened.value).toBe(false);
@@ -65,13 +65,13 @@ describe("routes grouping", () => {
       expect(routesGroup.isOpened.value).toBe(false);
     });
 
-    await allSettled(vRoute.open, { scope: appScope, payload: {} });
+    await scoped(appScope, () => vRoute.open({}));
 
     scoped(appScope, () => {
       expect(routesGroup.isOpened.value).toBe(true);
     });
 
-    await allSettled(vRoute.close, { scope: appScope });
+    await scoped(appScope, () => vRoute.close());
 
     scoped(appScope, () => {
       expect(routesGroup.isOpened.value).toBe(false);
