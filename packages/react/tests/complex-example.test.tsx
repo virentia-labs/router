@@ -2,33 +2,33 @@ import { allSettled, scope } from "@virentia/core";
 import { createMemoryHistory } from "history";
 import { describe, expect, test } from "vitest";
 import { waitFor } from "@testing-library/react";
-import { createRoute, createRouter, historyAdapter } from "@virentia/router";
-import { createRoutesView, Outlet } from "../lib";
+import { route, router, historyAdapter } from "@virentia/router";
+import { routesView, Outlet } from "../lib";
 import { openRoute, renderWithRouter } from "./utils";
 
 describe("complex nested router and outlet example", () => {
   test("complete e-commerce app structure", async () => {
     const appScope = scope();
     const authRoutes = {
-      login: createRoute({ path: "/login" }),
-      register: createRoute({ path: "/register" })
+      login: route({ path: "/login" }),
+      register: route({ path: "/register" })
     };
-    const authRouter = createRouter({
+    const authRouter = router({
       routes: [authRoutes.login, authRoutes.register]
     });
     const shopRoutes = {
-      products: createRoute({ path: "/products" }),
-      categories: createRoute({ path: "/categories" })
+      products: route({ path: "/products" }),
+      categories: route({ path: "/categories" })
     };
-    const shopRouter = createRouter({
+    const shopRouter = router({
       routes: [shopRoutes.products, shopRoutes.categories]
     });
-    const accountRoot = createRoute({ path: "/account" });
-    const accountProfile = createRoute({
+    const accountRoot = route({ path: "/account" });
+    const accountProfile = route({
       path: "/profile",
       parent: accountRoot
     });
-    const accountOrders = createRoute({
+    const accountOrders = route({
       path: "/orders",
       parent: accountRoot
     });
@@ -39,9 +39,9 @@ describe("complex nested router and outlet example", () => {
     };
 
     const mainRoutes = {
-      home: createRoute({ path: "/" })
+      home: route({ path: "/" })
     };
-    const mainRouter = createRouter({
+    const mainRouter = router({
       routes: [
         mainRoutes.home,
         authRouter,
@@ -57,7 +57,7 @@ describe("complex nested router and outlet example", () => {
       payload: historyAdapter(createMemoryHistory({ initialEntries: ["/"] }))
     });
 
-    const AuthRoutesView = createRoutesView({
+    const AuthRoutesView = routesView({
       routes: [
         {
           route: authRoutes.login,
@@ -77,7 +77,7 @@ describe("complex nested router and outlet example", () => {
         }
       ]
     });
-    const ShopRoutesView = createRoutesView({
+    const ShopRoutesView = routesView({
       routes: [
         {
           route: shopRoutes.products,
@@ -107,7 +107,7 @@ describe("complex nested router and outlet example", () => {
         </div>
       </div>
     );
-    const MainRoutesView = createRoutesView({
+    const MainRoutesView = routesView({
       routes: [
         {
           route: mainRoutes.home,

@@ -6,14 +6,14 @@ import { type ReactNode } from "react";
 import { describe, expect, test, vi } from "vitest";
 import {
   chainRoute,
-  createRoute,
-  createRouter,
+  route,
+  router,
   historyAdapter,
   type RouteOpenedPayload
 } from "@virentia/router";
 import {
-  createRouteView,
-  createRoutesView,
+  routeView,
+  routesView,
   Link,
   RouterProvider,
   withLayout
@@ -22,18 +22,18 @@ import { openRoute, renderWithRouter } from "./utils";
 
 describe("react bindings", () => {
   test("component changes when path changes", async () => {
-    const route1 = createRoute({ path: "/app" });
-    const route2 = createRoute({ path: "/faq" });
+    const route1 = route({ path: "/app" });
+    const route2 = route({ path: "/faq" });
     const appScope = scope();
-    const router = createRouter({ routes: [route1, route2] });
+    const appRouter = router({ routes: [route1, route2] });
     const history = createMemoryHistory();
 
-    await allSettled(router.setHistory, {
+    await allSettled(appRouter.setHistory, {
       scope: appScope,
       payload: historyAdapter(history)
     });
 
-    const RoutesView = createRoutesView({
+    const RoutesView = routesView({
       routes: [
         { route: route1, view: () => <p id="message">route1</p> },
         { route: route2, view: () => <p id="message">route2</p> }
@@ -41,7 +41,7 @@ describe("react bindings", () => {
       otherwise: () => <p id="message">not found</p>
     });
 
-    const { container } = renderWithRouter(router, appScope, <RoutesView />);
+    const { container } = renderWithRouter(appRouter, appScope, <RoutesView />);
 
     await openRoute(route1, appScope);
     await waitFor(() => expect(container.querySelector("#message")?.textContent).toBe("route1"));
@@ -59,18 +59,18 @@ describe("react bindings", () => {
   });
 
   test("link opens target route", async () => {
-    const route1 = createRoute({ path: "/app" });
-    const route2 = createRoute({ path: "/faq/:id" });
+    const route1 = route({ path: "/app" });
+    const route2 = route({ path: "/faq/:id" });
     const appScope = scope();
-    const router = createRouter({ routes: [route1, route2] });
+    const appRouter = router({ routes: [route1, route2] });
     const history = createMemoryHistory({ initialEntries: ["/app"] });
 
-    await allSettled(router.setHistory, {
+    await allSettled(appRouter.setHistory, {
       scope: appScope,
       payload: historyAdapter(history)
     });
 
-    const RoutesView = createRoutesView({
+    const RoutesView = routesView({
       routes: [
         {
           route: route1,
@@ -92,7 +92,7 @@ describe("react bindings", () => {
       otherwise: () => <p id="message">not found</p>
     });
 
-    const { container } = renderWithRouter(router, appScope, <RoutesView />);
+    const { container } = renderWithRouter(appRouter, appScope, <RoutesView />);
 
     await waitFor(() => expect(container.querySelector("#link")?.textContent).toBe("route1"));
     fireEvent.click(container.querySelector("#link")!);
@@ -115,20 +115,20 @@ describe("react bindings", () => {
 
   test("link navigation runs beforeOpen once and does not render otherwise", async () => {
     const beforeOpen = vi.fn();
-    const home = createRoute({ path: "/" });
-    const profile = createRoute({
+    const home = route({ path: "/" });
+    const profile = route({
       path: "/profile/:id",
       beforeOpen: [beforeOpen]
     });
     const appScope = scope();
-    const router = createRouter({ routes: [home, profile] });
+    const appRouter = router({ routes: [home, profile] });
 
-    await allSettled(router.setHistory, {
+    await allSettled(appRouter.setHistory, {
       scope: appScope,
       payload: historyAdapter(createMemoryHistory({ initialEntries: ["/"] }))
     });
 
-    const RoutesView = createRoutesView({
+    const RoutesView = routesView({
       routes: [
         {
           route: home,
@@ -146,7 +146,7 @@ describe("react bindings", () => {
       otherwise: () => <p data-testid="message">not found</p>
     });
 
-    renderWithRouter(router, appScope, <RoutesView />);
+    renderWithRouter(appRouter, appScope, <RoutesView />);
 
     await waitFor(() => expect(screen.getByText("Profile")).toBeTruthy());
     fireEvent.click(screen.getByText("Profile"));
@@ -158,18 +158,18 @@ describe("react bindings", () => {
   });
 
   test("link renders href with params and query", async () => {
-    const home = createRoute({ path: "/" });
-    const profile = createRoute({ path: "/profile/:id" });
-    const router = createRouter({ routes: [home, profile] });
+    const home = route({ path: "/" });
+    const profile = route({ path: "/profile/:id" });
+    const appRouter = router({ routes: [home, profile] });
     const appScope = scope();
 
-    await allSettled(router.setHistory, {
+    await allSettled(appRouter.setHistory, {
       scope: appScope,
       payload: historyAdapter(createMemoryHistory({ initialEntries: ["/"] }))
     });
 
     renderWithRouter(
-      router,
+      appRouter,
       appScope,
       <Link to={profile} params={{ id: "42" }} query={{ tab: "posts" }}>
         Profile
@@ -185,8 +185,8 @@ describe("react bindings", () => {
       name: string;
     }
 
-    const authRoute = createRoute({ path: "/auth" });
-    const profileRoute = createRoute({ path: "/profile" });
+    const authRoute = route({ path: "/auth" });
+    const profileRoute = route({ path: "/profile" });
     const user = store<User | null>({ id: 1, name: "edward" });
 
     const authorizationCheckStarted = event<RouteOpenedPayload<void>>();
@@ -215,14 +215,14 @@ describe("react bindings", () => {
     });
 
     const appScope = scope();
-    const router = createRouter({ routes: [authRoute, profileRoute] });
+    const appRouter = router({ routes: [authRoute, profileRoute] });
 
-    await allSettled(router.setHistory, {
+    await allSettled(appRouter.setHistory, {
       scope: appScope,
       payload: historyAdapter(createMemoryHistory({ initialEntries: ["/app"] }))
     });
 
-    const RoutesView = createRoutesView({
+    const RoutesView = routesView({
       routes: [
         {
           route: chainedRoute,
@@ -236,7 +236,7 @@ describe("react bindings", () => {
       otherwise: () => <p data-testid="message">not found</p>
     });
 
-    renderWithRouter(router, appScope, <RoutesView />);
+    renderWithRouter(appRouter, appScope, <RoutesView />);
 
     await openRoute(authRoute, appScope);
     await waitFor(() => expect(screen.getByTestId("message").textContent).toBe("profile"));
@@ -250,21 +250,21 @@ describe("react bindings", () => {
   });
 
   test("nested routes prefer child view and can return to parent view", async () => {
-    const profileRoute = createRoute({ path: "/profile" });
-    const friendsRoute = createRoute({
+    const profileRoute = route({ path: "/profile" });
+    const friendsRoute = route({
       path: "/friends",
       parent: profileRoute
     });
 
     const appScope = scope();
-    const router = createRouter({ routes: [friendsRoute, profileRoute] });
+    const appRouter = router({ routes: [friendsRoute, profileRoute] });
 
-    await allSettled(router.setHistory, {
+    await allSettled(appRouter.setHistory, {
       scope: appScope,
       payload: historyAdapter(createMemoryHistory({ initialEntries: ["/app"] }))
     });
 
-    const RoutesView = createRoutesView({
+    const RoutesView = routesView({
       routes: [
         {
           route: friendsRoute,
@@ -278,7 +278,7 @@ describe("react bindings", () => {
       otherwise: () => <p data-testid="message">not found</p>
     });
 
-    renderWithRouter(router, appScope, <RoutesView />);
+    renderWithRouter(appRouter, appScope, <RoutesView />);
 
     await openRoute(friendsRoute, appScope);
     await waitFor(() => expect(screen.getByTestId("message").textContent).toBe("friends"));
@@ -288,18 +288,18 @@ describe("react bindings", () => {
   });
 
   test("withLayout wraps grouped route views", async () => {
-    const profileRoute = createRoute({ path: "/profile" });
-    const friendsRoute = createRoute({
+    const profileRoute = route({ path: "/profile" });
+    const friendsRoute = route({
       path: "/friends",
       parent: profileRoute
     });
-    const authRoute = createRoute({ path: "/auth" });
+    const authRoute = route({ path: "/auth" });
     const appScope = scope();
-    const router = createRouter({
+    const appRouter = router({
       routes: [friendsRoute, profileRoute, authRoute]
     });
 
-    await allSettled(router.setHistory, {
+    await allSettled(appRouter.setHistory, {
       scope: appScope,
       payload: historyAdapter(createMemoryHistory({ initialEntries: ["/auth"] }))
     });
@@ -311,19 +311,19 @@ describe("react bindings", () => {
       </>
     );
 
-    const RoutesView = createRoutesView({
+    const RoutesView = routesView({
       routes: [
         ...withLayout(ProfileLayout, [
-          createRouteView({
+          routeView({
             route: friendsRoute,
             view: () => <p data-testid="message">friends</p>
           }),
-          createRouteView({
+          routeView({
             route: profileRoute,
             view: () => <p data-testid="message">profile</p>
           })
         ]),
-        createRouteView({
+        routeView({
           route: authRoute,
           view: () => <p data-testid="message">auth</p>
         })
@@ -333,7 +333,7 @@ describe("react bindings", () => {
 
     render(
       <ScopeProvider scope={appScope}>
-        <RouterProvider router={router}>
+        <RouterProvider router={appRouter}>
           <RoutesView />
         </RouterProvider>
       </ScopeProvider>,

@@ -51,10 +51,10 @@ export function hasOpen(route: NavigationRoute): route is Route<any> | VirtualRo
   return "open" in route && typeof route.open === "function";
 }
 
-export function createScreenComponent(routeView: RouteView): ComponentType {
+export function screenComponent(routeView: RouteView): ComponentType {
   const View = routeView.view;
 
-  return function VirentiaRouteScreen() {
+  return function RouteScreen() {
     return createElement(View);
   };
 }

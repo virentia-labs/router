@@ -2,25 +2,25 @@ import { allSettled, scope, scoped } from "@virentia/core";
 import { createMemoryHistory } from "history";
 import { describe, expect, test } from "vitest";
 import { waitFor } from "@testing-library/react";
-import { createRoute, createRouter, historyAdapter } from "@virentia/router";
-import { createRoutesView } from "../lib";
+import { route, router, historyAdapter } from "@virentia/router";
+import { routesView } from "../lib";
 import { openRoute, renderWithRouter } from "./utils";
 
 describe("nested routers", () => {
   test("basic nested router functionality", async () => {
     const appScope = scope();
     const shopRoutes = {
-      products: createRoute({ path: "/products" }),
-      cart: createRoute({ path: "/cart" })
+      products: route({ path: "/products" }),
+      cart: route({ path: "/cart" })
     };
-    const shopRouter = createRouter({
+    const shopRouter = router({
       routes: [shopRoutes.products, shopRoutes.cart]
     });
     const mainRoutes = {
-      home: createRoute({ path: "/" }),
-      settings: createRoute({ path: "/settings" })
+      home: route({ path: "/" }),
+      settings: route({ path: "/settings" })
     };
-    const mainRouter = createRouter({
+    const mainRouter = router({
       routes: [mainRoutes.home, mainRoutes.settings, shopRouter]
     });
 
@@ -29,7 +29,7 @@ describe("nested routers", () => {
       payload: historyAdapter(createMemoryHistory({ initialEntries: ["/"] }))
     });
 
-    const ShopRoutesView = createRoutesView({
+    const ShopRoutesView = routesView({
       routes: [
         {
           route: shopRoutes.products,
@@ -41,7 +41,7 @@ describe("nested routers", () => {
         }
       ]
     });
-    const MainRoutesView = createRoutesView({
+    const MainRoutesView = routesView({
       routes: [
         {
           route: mainRoutes.home,
@@ -84,23 +84,23 @@ describe("nested routers", () => {
   test("multiple nested routers at same level", async () => {
     const appScope = scope();
     const shopRoutes = {
-      products: createRoute({ path: "/products" }),
-      orders: createRoute({ path: "/orders" })
+      products: route({ path: "/products" }),
+      orders: route({ path: "/orders" })
     };
-    const shopRouter = createRouter({
+    const shopRouter = router({
       routes: [shopRoutes.products, shopRoutes.orders]
     });
     const blogRoutes = {
-      posts: createRoute({ path: "/posts" }),
-      authors: createRoute({ path: "/authors" })
+      posts: route({ path: "/posts" }),
+      authors: route({ path: "/authors" })
     };
-    const blogRouter = createRouter({
+    const blogRouter = router({
       routes: [blogRoutes.posts, blogRoutes.authors]
     });
     const mainRoutes = {
-      home: createRoute({ path: "/" })
+      home: route({ path: "/" })
     };
-    const mainRouter = createRouter({
+    const mainRouter = router({
       routes: [mainRoutes.home, shopRouter, blogRouter]
     });
 
@@ -109,7 +109,7 @@ describe("nested routers", () => {
       payload: historyAdapter(createMemoryHistory({ initialEntries: ["/"] }))
     });
 
-    const ShopRoutesView = createRoutesView({
+    const ShopRoutesView = routesView({
       routes: [
         {
           route: shopRoutes.products,
@@ -121,7 +121,7 @@ describe("nested routers", () => {
         }
       ]
     });
-    const BlogRoutesView = createRoutesView({
+    const BlogRoutesView = routesView({
       routes: [
         {
           route: blogRoutes.posts,
@@ -133,7 +133,7 @@ describe("nested routers", () => {
         }
       ]
     });
-    const MainRoutesView = createRoutesView({
+    const MainRoutesView = routesView({
       routes: [
         {
           route: mainRoutes.home,
@@ -169,9 +169,9 @@ describe("nested routers", () => {
 
   test("nested router state isolation", async () => {
     const appScope = scope();
-    const moduleARoute = createRoute({ path: "/module-a" });
-    const moduleBRoute = createRoute({ path: "/module-b" });
-    const mainRouter = createRouter({
+    const moduleARoute = route({ path: "/module-a" });
+    const moduleBRoute = route({ path: "/module-b" });
+    const mainRouter = router({
       routes: [moduleARoute, moduleBRoute]
     });
 
@@ -180,7 +180,7 @@ describe("nested routers", () => {
       payload: historyAdapter(createMemoryHistory({ initialEntries: ["/"] }))
     });
 
-    const MainRoutesView = createRoutesView({
+    const MainRoutesView = routesView({
       routes: [
         {
           route: moduleARoute,
@@ -219,16 +219,16 @@ describe("nested routers", () => {
   test("nested router with route parameters", async () => {
     const appScope = scope();
     const projectRoutes = {
-      details: createRoute({ path: "/details" }),
-      tasks: createRoute({ path: "/tasks/:taskId" })
+      details: route({ path: "/details" }),
+      tasks: route({ path: "/tasks/:taskId" })
     };
-    const projectRouter = createRouter({
+    const projectRouter = router({
       routes: [projectRoutes.details, projectRoutes.tasks]
     });
     const mainRoutes = {
-      workspace: createRoute({ path: "/workspace/:workspaceId" })
+      workspace: route({ path: "/workspace/:workspaceId" })
     };
-    const mainRouter = createRouter({
+    const mainRouter = router({
       routes: [mainRoutes.workspace, projectRouter]
     });
 
@@ -237,7 +237,7 @@ describe("nested routers", () => {
       payload: historyAdapter(createMemoryHistory({ initialEntries: ["/workspace/ws-123"] }))
     });
 
-    const ProjectRoutesView = createRoutesView({
+    const ProjectRoutesView = routesView({
       routes: [
         {
           route: projectRoutes.details,
@@ -249,7 +249,7 @@ describe("nested routers", () => {
         }
       ]
     });
-    const MainRoutesView = createRoutesView({
+    const MainRoutesView = routesView({
       routes: [
         {
           route: mainRoutes.workspace,
@@ -282,20 +282,20 @@ describe("nested routers", () => {
   test("nested router isolated state management", async () => {
     const appScope = scope();
     const moduleARoutes = {
-      page1: createRoute({ path: "/module-a/page1" }),
-      page2: createRoute({ path: "/module-a/page2" })
+      page1: route({ path: "/module-a/page1" }),
+      page2: route({ path: "/module-a/page2" })
     };
-    const moduleARouter = createRouter({
+    const moduleARouter = router({
       routes: [moduleARoutes.page1, moduleARoutes.page2]
     });
     const moduleBRoutes = {
-      page1: createRoute({ path: "/module-b/page1" }),
-      page2: createRoute({ path: "/module-b/page2" })
+      page1: route({ path: "/module-b/page1" }),
+      page2: route({ path: "/module-b/page2" })
     };
-    const moduleBRouter = createRouter({
+    const moduleBRouter = router({
       routes: [moduleBRoutes.page1, moduleBRoutes.page2]
     });
-    const mainRouter = createRouter({
+    const mainRouter = router({
       routes: [moduleARouter, moduleBRouter]
     });
 
@@ -304,7 +304,7 @@ describe("nested routers", () => {
       payload: historyAdapter(createMemoryHistory({ initialEntries: ["/"] }))
     });
 
-    const ModuleARoutesView = createRoutesView({
+    const ModuleARoutesView = routesView({
       routes: [
         {
           route: moduleARoutes.page1,
@@ -316,7 +316,7 @@ describe("nested routers", () => {
         }
       ]
     });
-    const ModuleBRoutesView = createRoutesView({
+    const ModuleBRoutesView = routesView({
       routes: [
         {
           route: moduleBRoutes.page1,
@@ -328,7 +328,7 @@ describe("nested routers", () => {
         }
       ]
     });
-    const MainRoutesView = createRoutesView({
+    const MainRoutesView = routesView({
       routes: [
         {
           route: moduleARouter,

@@ -1,6 +1,6 @@
-export { createLazyRouteView } from "./create-lazy-route-view";
-export { createRouteView } from "./create-route-view";
-export { createRoutesView } from "./create-routes-view";
+export { lazyRouteView } from "./lazy-route-view";
+export { routeView } from "./route-view";
+export { routesView } from "./routes-view";
 export { Link } from "./link";
 export { Outlet } from "./outlet";
 export { RouterProvider } from "./router-provider";

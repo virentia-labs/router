@@ -3,7 +3,7 @@ import { OutletContext } from "./context";
 import type { CreateRoutesViewProps } from "./types";
 import { useOpenedViews } from "./use-opened-views";
 
-export function createRoutesView({ otherwise: Otherwise, routes }: CreateRoutesViewProps) {
+export function routesView({ otherwise: Otherwise, routes }: CreateRoutesViewProps) {
   return function RoutesView() {
     const openedView = useOpenedViews(routes).at(-1);
 

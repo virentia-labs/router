@@ -1,32 +1,32 @@
 import { allSettled, event, scope, scoped } from "@virentia/core";
 import { createMemoryHistory } from "history";
 import { describe, expect, test, vi } from "vitest";
-import { createRoute, createRouter, historyAdapter, type Query, type QuerySchema } from "../lib";
+import { route, router, historyAdapter, type Query, type QuerySchema } from "../lib";
 import { watchCalls } from "./utils";
 
 async function prepare() {
   const routes = {
-    home: createRoute({ path: "/" }),
-    app: createRoute({ path: "/app" })
+    home: route({ path: "/" }),
+    app: route({ path: "/app" })
   };
   const appScope = scope();
   const history = createMemoryHistory({ initialEntries: ["/"] });
-  const router = createRouter({
+  const appRouter = router({
     routes: [routes.home, routes.app]
   });
 
-  await allSettled(router.setHistory, {
+  await allSettled(appRouter.setHistory, {
     scope: appScope,
     payload: historyAdapter(history)
   });
 
-  return { appScope, history, router, routes };
+  return { appScope, history, appRouter, routes };
 }
 
 describe("trackQuery", () => {
   test("number parameter", async () => {
-    const { appScope, router } = await prepare();
-    const tracker = router.trackQuery({
+    const { appScope, appRouter } = await prepare();
+    const tracker = appRouter.trackQuery({
       parameters: objectSchema(({ num }) => {
         if (typeof num !== "string" || Number.isNaN(Number(num))) return null;
         return { num: Number(num) };
@@ -35,14 +35,14 @@ describe("trackQuery", () => {
     const enteredCalls = watchCalls(tracker.entered, appScope);
     const exitedCalls = watchCalls(tracker.exited, appScope);
 
-    await allSettled(router.navigate, {
+    await allSettled(appRouter.navigate, {
       scope: appScope,
       payload: { path: "/", query: { num: "1200" } }
     });
 
     await vi.waitFor(() => expect(enteredCalls).toHaveBeenCalledWith({ num: 1200 }));
 
-    await allSettled(router.navigate, {
+    await allSettled(appRouter.navigate, {
       scope: appScope,
       payload: { path: "/", query: { num: "hello" } }
     });
@@ -50,7 +50,7 @@ describe("trackQuery", () => {
     await vi.waitFor(() => expect(exitedCalls).toHaveBeenCalledTimes(1));
     expect(enteredCalls).toHaveBeenCalledTimes(1);
 
-    await allSettled(router.navigate, {
+    await allSettled(appRouter.navigate, {
       scope: appScope,
       payload: { path: "/", query: { num: ["hello", "1200"] } }
     });
@@ -60,26 +60,26 @@ describe("trackQuery", () => {
   });
 
   test("string parameter", async () => {
-    const { appScope, router } = await prepare();
-    const tracker = router.trackQuery({
+    const { appScope, appRouter } = await prepare();
+    const tracker = appRouter.trackQuery({
       parameters: objectSchema(({ str }) => (typeof str === "string" ? { str } : null))
     });
     const enteredCalls = watchCalls(tracker.entered, appScope);
     const exitedCalls = watchCalls(tracker.exited, appScope);
 
-    await allSettled(router.navigate, {
+    await allSettled(appRouter.navigate, {
       scope: appScope,
       payload: { path: "/", query: { str: "1200" } }
     });
     await vi.waitFor(() => expect(enteredCalls).toHaveBeenCalledWith({ str: "1200" }));
 
-    await allSettled(router.navigate, {
+    await allSettled(appRouter.navigate, {
       scope: appScope,
       payload: { path: "/", query: { str: "hello" } }
     });
     await vi.waitFor(() => expect(enteredCalls).toHaveBeenCalledWith({ str: "hello" }));
 
-    await allSettled(router.navigate, {
+    await allSettled(appRouter.navigate, {
       scope: appScope,
       payload: { path: "/", query: { str: ["hello", "1200"] } }
     });
@@ -89,32 +89,32 @@ describe("trackQuery", () => {
   });
 
   test("any parameter", async () => {
-    const { appScope, router } = await prepare();
-    const tracker = router.trackQuery({
+    const { appScope, appRouter } = await prepare();
+    const tracker = appRouter.trackQuery({
       parameters: objectSchema(({ any }) => (any !== undefined ? { any } : null))
     });
     const enteredCalls = watchCalls(tracker.entered, appScope);
     const exitedCalls = watchCalls(tracker.exited, appScope);
 
-    await allSettled(router.navigate, {
+    await allSettled(appRouter.navigate, {
       scope: appScope,
       payload: { path: "/", query: { any: "1200" } }
     });
     await vi.waitFor(() => expect(enteredCalls).toHaveBeenCalledWith({ any: "1200" }));
 
-    await allSettled(router.navigate, {
+    await allSettled(appRouter.navigate, {
       scope: appScope,
       payload: { path: "/", query: { any: "hello" } }
     });
     await vi.waitFor(() => expect(enteredCalls).toHaveBeenCalledWith({ any: "hello" }));
 
-    await allSettled(router.navigate, {
+    await allSettled(appRouter.navigate, {
       scope: appScope,
       payload: { path: "/", query: { any: ["hello", "1200"] } }
     });
     await vi.waitFor(() => expect(enteredCalls).toHaveBeenCalledWith({ any: ["hello", "1200"] }));
 
-    await allSettled(router.navigate, {
+    await allSettled(appRouter.navigate, {
       scope: appScope,
       payload: { path: "/", query: {} }
     });
@@ -124,20 +124,20 @@ describe("trackQuery", () => {
   });
 
   test("array parameter", async () => {
-    const { appScope, router } = await prepare();
-    const tracker = router.trackQuery({
+    const { appScope, appRouter } = await prepare();
+    const tracker = appRouter.trackQuery({
       parameters: objectSchema(({ any }) => (any !== undefined ? { any } : null))
     });
     const enteredCalls = watchCalls(tracker.entered, appScope);
     const exitedCalls = watchCalls(tracker.exited, appScope);
 
-    await allSettled(router.navigate, {
+    await allSettled(appRouter.navigate, {
       scope: appScope,
       payload: { path: "/", query: { any: ["hello", "1200"] } }
     });
     await vi.waitFor(() => expect(enteredCalls).toHaveBeenCalledWith({ any: ["hello", "1200"] }));
 
-    await allSettled(router.navigate, {
+    await allSettled(appRouter.navigate, {
       scope: appScope,
       payload: { path: "/", query: {} }
     });
@@ -147,8 +147,8 @@ describe("trackQuery", () => {
   });
 
   test("boolean parameter", async () => {
-    const { appScope, router } = await prepare();
-    const tracker = router.trackQuery({
+    const { appScope, appRouter } = await prepare();
+    const tracker = appRouter.trackQuery({
       parameters: objectSchema(({ bool }) => {
         if (typeof bool !== "string" || !["0", "1", "false", "true"].includes(bool)) {
           return null;
@@ -166,14 +166,14 @@ describe("trackQuery", () => {
       ["false", false],
       ["true", true]
     ] as const) {
-      await allSettled(router.navigate, {
+      await allSettled(appRouter.navigate, {
         scope: appScope,
         payload: { path: "/", query: { bool: value } }
       });
       await vi.waitFor(() => expect(enteredCalls).toHaveBeenCalledWith({ bool: parsed }));
     }
 
-    await allSettled(router.navigate, {
+    await allSettled(appRouter.navigate, {
       scope: appScope,
       payload: { path: "/", query: { bool: "123" } }
     });
@@ -181,12 +181,12 @@ describe("trackQuery", () => {
     await vi.waitFor(() => expect(exitedCalls).toHaveBeenCalledTimes(1));
     expect(enteredCalls).toHaveBeenCalledTimes(4);
 
-    await allSettled(router.navigate, {
+    await allSettled(appRouter.navigate, {
       scope: appScope,
       payload: { path: "/", query: { bool: "hello" } }
     });
 
-    await allSettled(router.navigate, {
+    await allSettled(appRouter.navigate, {
       scope: appScope,
       payload: { path: "/", query: { bool: ["0", "hello"] } }
     });
@@ -196,33 +196,33 @@ describe("trackQuery", () => {
   });
 
   test("for routes", async () => {
-    const { appScope, router, routes } = await prepare();
-    const tracker = router.trackQuery({
+    const { appScope, appRouter, routes } = await prepare();
+    const tracker = appRouter.trackQuery({
       parameters: objectSchema(({ any }) => (any !== undefined ? { any } : null)),
       forRoutes: [routes.app, routes.home]
     });
     const enteredCalls = watchCalls(tracker.entered, appScope);
     const exitedCalls = watchCalls(tracker.exited, appScope);
 
-    await allSettled(router.navigate, {
+    await allSettled(appRouter.navigate, {
       scope: appScope,
       payload: { path: "/not-found", query: { any: "123" } }
     });
     expect(enteredCalls).not.toHaveBeenCalled();
 
-    await allSettled(router.navigate, {
+    await allSettled(appRouter.navigate, {
       scope: appScope,
       payload: { path: "/app", query: { any: "123" } }
     });
     await vi.waitFor(() => expect(enteredCalls).toHaveBeenCalledTimes(1));
 
-    await allSettled(router.navigate, {
+    await allSettled(appRouter.navigate, {
       scope: appScope,
       payload: { path: "/", query: { any: "123" } }
     });
     await vi.waitFor(() => expect(enteredCalls).toHaveBeenCalledTimes(2));
 
-    await allSettled(router.navigate, {
+    await allSettled(appRouter.navigate, {
       scope: appScope,
       payload: { path: "/not-found", query: { any: "123" } }
     });
@@ -230,21 +230,21 @@ describe("trackQuery", () => {
   });
 
   test("exit", async () => {
-    const { appScope, router, routes } = await prepare();
-    const tracker = router.trackQuery({
+    const { appScope, appRouter, routes } = await prepare();
+    const tracker = appRouter.trackQuery({
       parameters: objectSchema(({ any }) => (any !== undefined ? { any } : null)),
       forRoutes: [routes.app, routes.home]
     });
     const exitedCalls = watchCalls(tracker.exited, appScope);
 
-    await allSettled(router.navigate, {
+    await allSettled(appRouter.navigate, {
       scope: appScope,
       payload: { path: "/not-found", query: { any: "123" } }
     });
     await allSettled(tracker.exit, { scope: appScope, payload: undefined });
     expect(exitedCalls).not.toHaveBeenCalled();
 
-    await allSettled(router.navigate, {
+    await allSettled(appRouter.navigate, {
       scope: appScope,
       payload: { path: "/", query: { any: "123", uid: "hi!" } }
     });
@@ -252,27 +252,27 @@ describe("trackQuery", () => {
 
     await vi.waitFor(() => expect(exitedCalls).toHaveBeenCalled());
     scoped(appScope, () => {
-      expect(router.query.value.any).toBeUndefined();
-      expect(router.query.value.uid).toBeUndefined();
+      expect(appRouter.query.value.any).toBeUndefined();
+      expect(appRouter.query.value.uid).toBeUndefined();
     });
   });
 
   test("ignore parameters", async () => {
-    const { appScope, router, routes } = await prepare();
-    const tracker = router.trackQuery({
+    const { appScope, appRouter, routes } = await prepare();
+    const tracker = appRouter.trackQuery({
       parameters: objectSchema(({ any }) => (any !== undefined ? { any } : null)),
       forRoutes: [routes.app, routes.home]
     });
     const exitedCalls = watchCalls(tracker.exited, appScope);
 
-    await allSettled(router.navigate, {
+    await allSettled(appRouter.navigate, {
       scope: appScope,
       payload: { path: "/not-found", query: { any: "123" } }
     });
     await allSettled(tracker.exit, { scope: appScope, payload: undefined });
     expect(exitedCalls).not.toHaveBeenCalled();
 
-    await allSettled(router.navigate, {
+    await allSettled(appRouter.navigate, {
       scope: appScope,
       payload: { path: "/", query: { any: "123", uid: "hi!" } }
     });
@@ -283,14 +283,14 @@ describe("trackQuery", () => {
 
     await vi.waitFor(() => expect(exitedCalls).toHaveBeenCalled());
     scoped(appScope, () => {
-      expect(router.query.value.any).toBeUndefined();
-      expect(router.query.value.uid).toBe("hi!");
+      expect(appRouter.query.value.any).toBeUndefined();
+      expect(appRouter.query.value.uid).toBe("hi!");
     });
   });
 
   test("enter", async () => {
-    const { appScope, history, router, routes } = await prepare();
-    const tracker = router.trackQuery({
+    const { appScope, history, appRouter, routes } = await prepare();
+    const tracker = appRouter.trackQuery({
       parameters: objectSchema(({ id, role }) => {
         if (typeof id !== "string" || Number.isNaN(Number(id))) return null;
         if (role !== "user" && role !== "admin") return null;
@@ -305,8 +305,8 @@ describe("trackQuery", () => {
     });
 
     scoped(appScope, () => {
-      expect(router.query.value.id).toBe("0");
-      expect(router.query.value.role).toBe("user");
+      expect(appRouter.query.value.id).toBe("0");
+      expect(appRouter.query.value.role).toBe("user");
     });
     expect(history.location.search).toBe("?id=0&role=user");
 
@@ -316,16 +316,16 @@ describe("trackQuery", () => {
     });
 
     scoped(appScope, () => {
-      expect(router.query.value.id).toBe("1");
-      expect(router.query.value.role).toBe("admin");
+      expect(appRouter.query.value.id).toBe("1");
+      expect(appRouter.query.value.role).toBe("admin");
     });
     expect(history.location.search).toBe("?id=1&role=admin");
   });
 
   test("check by clock", async () => {
     const check = event<void>();
-    const { appScope, router, routes } = await prepare();
-    const tracker = router.trackQuery({
+    const { appScope, appRouter, routes } = await prepare();
+    const tracker = appRouter.trackQuery({
       check,
       parameters: objectSchema(({ id }) => (typeof id === "string" ? { id } : null))
     });

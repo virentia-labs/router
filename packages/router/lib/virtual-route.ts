@@ -6,7 +6,7 @@ interface VirtualRouteOptions<T, TransformerResult> {
   transformer?: (payload: T) => TransformerResult;
 }
 
-export function createVirtualRoute<T = void, TransformerResult = void>(
+export function virtualRoute<T = void, TransformerResult = void>(
   options: VirtualRouteOptions<T, TransformerResult> = {},
 ): VirtualRoute<T, TransformerResult> {
   const {

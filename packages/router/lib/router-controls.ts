@@ -25,7 +25,7 @@ interface CommittedUrlState {
   current: string | null;
 }
 
-export function createRouterControls(): RouterControls {
+export function routerControls(): RouterControls {
   const historyState = store<HistoryState>({ current: null });
   const history = computed(() => historyState.value.current);
   const locationState = store<LocationState>({

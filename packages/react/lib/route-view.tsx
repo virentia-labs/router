@@ -1,6 +1,6 @@
 import type { CreateRouteViewProps, RouteView } from "./types";
 
-export function createRouteView<T extends object | void = void>(
+export function routeView<T extends object | void = void>(
   props: CreateRouteViewProps<T>,
 ): RouteView {
   const { children, layout: Layout, view: View } = props;

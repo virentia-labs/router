@@ -14,17 +14,17 @@ pnpm add react-native-gesture-handler react-native-safe-area-context react-nativ
 
 ```tsx
 import { NavigationContainer } from "@react-navigation/native";
-import { createVirentiaStackNavigator } from "@virentia/router-react-native";
-import { RouterProvider, createRouteView } from "@virentia/router-react";
+import { stackNavigator } from "@virentia/router-react-native";
+import { RouterProvider, routeView } from "@virentia/router-react";
 import { router, homeRoute, profileRoute } from "./router";
 import { HomeScreen, ProfileScreen } from "./screens";
 
 const routes = [
-  createRouteView({ route: homeRoute, view: HomeScreen }),
-  createRouteView({ route: profileRoute, view: ProfileScreen }),
+  routeView({ route: homeRoute, view: HomeScreen }),
+  routeView({ route: profileRoute, view: ProfileScreen }),
 ];
 
-const { Navigator } = createVirentiaStackNavigator({
+const { Navigator } = stackNavigator({
   router,
   routes,
   initialRouteName: "/",
@@ -47,16 +47,16 @@ export function App() {
 ## Bottom Tabs Navigator
 
 ```tsx
-import { createVirentiaBottomTabsNavigator } from "@virentia/router-react-native";
-import { createRouteView } from "@virentia/router-react";
+import { bottomTabsNavigator } from "@virentia/router-react-native";
+import { routeView } from "@virentia/router-react";
 import { router, homeRoute, settingsRoute } from "./router";
 import { HomeScreen, SettingsScreen } from "./screens";
 
-const { Navigator } = createVirentiaBottomTabsNavigator({
+const { Navigator } = bottomTabsNavigator({
   router,
   routes: [
-    createRouteView({ route: homeRoute, view: HomeScreen }),
-    createRouteView({ route: settingsRoute, view: SettingsScreen }),
+    routeView({ route: homeRoute, view: HomeScreen }),
+    routeView({ route: settingsRoute, view: SettingsScreen }),
   ],
   initialRouteName: "home",
 });
@@ -64,7 +64,7 @@ const { Navigator } = createVirentiaBottomTabsNavigator({
 
 ## Main API
 
-`createVirentiaStackNavigator`, `createVirentiaBottomTabsNavigator`.
+`stackNavigator`, `bottomTabsNavigator`.
 
 ## License
 

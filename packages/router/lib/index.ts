@@ -1,9 +1,9 @@
 export { chainRoute } from "./chain-route";
-export { createRoute } from "./create-route";
-export type { CreateRouteConfig } from "./create-route";
-export { createRouter } from "./create-router";
-export { createRouterControls } from "./create-router-controls";
-export { createVirtualRoute } from "./create-virtual-route";
+export { route } from "./route";
+export type { RouteConfig } from "./route";
+export { router } from "./router";
+export { routerControls } from "./router-controls";
+export { virtualRoute } from "./virtual-route";
 export { group } from "./group";
 export { trackQueryFactory } from "./track-query";
 export { is } from "./utils";

@@ -13,7 +13,7 @@ export function useLink<T extends object | void = void>(
   const target = router.knownRoutes.find(({ route }) => route === to);
 
   if (!target) {
-    throw new Error("[useLink] Route not found. Pass it to createRouter first.");
+    throw new Error("[useLink] Route not found. Pass it to router first.");
   }
 
   const path = useMemo(() => {

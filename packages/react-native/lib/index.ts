@@ -1,12 +1,12 @@
-export { createVirentiaBottomTabsNavigator } from "./bottom-tabs-navigator";
-export { createVirentiaStackNavigator } from "./stack-navigator";
+export { bottomTabsNavigator } from "./bottom-tabs-navigator";
+export { stackNavigator } from "./stack-navigator";
 
 export type {
-  VirentiaBottomTabsNavigatorConfig,
-  VirentiaBottomTabsNavigatorOptions,
-  VirentiaBottomTabsRouteView
+  BottomTabsNavigatorConfig,
+  BottomTabsNavigatorOptions,
+  BottomTabsRouteView
 } from "./bottom-tabs-navigator";
 export type {
-  VirentiaStackNavigatorConfig,
-  VirentiaStackNavigatorOptions
+  StackNavigatorConfig,
+  StackNavigatorOptions
 } from "./stack-navigator";

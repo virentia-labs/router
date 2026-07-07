@@ -3,9 +3,9 @@ import { createMemoryHistory } from "history";
 import { describe, expect, test, vi } from "vitest";
 import {
   chainRoute,
-  createRoute,
-  createRouter,
-  createVirtualRoute,
+  route,
+  router,
+  virtualRoute,
   historyAdapter,
   type RouteOpenedPayload
 } from "../lib";
@@ -14,10 +14,10 @@ import { watchCalls } from "./utils";
 describe("chained routes", () => {
   test("authorized route", async () => {
     const appScope = scope();
-    const route = createRoute({ path: "/profile/:id" });
-    const router = createRouter({ routes: [route] });
+    const profileRoute = route({ path: "/profile/:id" });
+    const appRouter = router({ routes: [profileRoute] });
 
-    await allSettled(router.setHistory, {
+    await allSettled(appRouter.setHistory, {
       scope: appScope,
       payload: historyAdapter(createMemoryHistory())
     });
@@ -36,13 +36,13 @@ describe("chained routes", () => {
     });
 
     const virtual = chainRoute({
-      route,
+      route: profileRoute,
       beforeOpen: checkAuthorizationFx,
       openOn: authorized,
       cancelOn: rejected
     });
 
-    await allSettled(route.open, {
+    await allSettled(profileRoute.open, {
       scope: appScope,
       payload: { params: { id: "0" } }
     });
@@ -51,7 +51,7 @@ describe("chained routes", () => {
       expect(virtual.isOpened.value).toBe(false);
     });
 
-    await allSettled(route.open, {
+    await allSettled(profileRoute.open, {
       scope: appScope,
       payload: { params: { id: "1" } }
     });
@@ -66,21 +66,21 @@ describe("chained routes", () => {
 
   test("chains virtual route", async () => {
     const appScope = scope();
-    const virtualRoute = createVirtualRoute<RouteOpenedPayload<void>>();
+    const vRoute = virtualRoute<RouteOpenedPayload<void>>();
     const beforeOpenFx = effect<RouteOpenedPayload<void>, RouteOpenedPayload<void>, unknown>(
       (params) => params,
     );
     const counter = watchCalls(beforeOpenFx.started, appScope);
 
     const chainedRoute = chainRoute({
-      route: virtualRoute,
+      route: vRoute,
       beforeOpen: [beforeOpenFx],
       openOn: beforeOpenFx.doneData
     });
 
     expect(counter).not.toHaveBeenCalled();
 
-    await allSettled(virtualRoute.open, {
+    await allSettled(vRoute.open, {
       scope: appScope,
       payload: { query: { test: "abc" } }
     });

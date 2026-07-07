@@ -1,5 +1,11 @@
 # @virentia/router
 
+## 0.3.0
+
+### Minor Changes
+
+- chore: 0.3.0
+
 ## 0.2.1
 
 ### Patch Changes

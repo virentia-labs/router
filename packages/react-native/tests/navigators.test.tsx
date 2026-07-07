@@ -12,24 +12,24 @@ import { Text } from "react-native";
 import { act, fireEvent, render, screen, waitFor } from "@testing-library/react-native";
 import { describe, expect, test } from "vitest";
 import {
-  createRoute,
-  createRouter,
-  createVirtualRoute,
+  route,
+  router,
+  virtualRoute,
   historyAdapter
 } from "@virentia/router";
 import type { Route, Router } from "@virentia/router";
 import { RouterProvider } from "@virentia/router-react";
 import type { RouteView } from "@virentia/router-react";
 import {
-  createVirentiaBottomTabsNavigator,
-  createVirentiaStackNavigator
+  bottomTabsNavigator,
+  stackNavigator
 } from "../lib";
-import type { VirentiaBottomTabsRouteView } from "../lib";
+import type { BottomTabsRouteView } from "../lib";
 
-function renderWithNavigation(router: Router, appScope: Scope, children: React.ReactNode) {
+function renderWithNavigation(appRouter: Router, appScope: Scope, children: React.ReactNode) {
   return render(
     <ScopeProvider scope={appScope}>
-      <RouterProvider router={router}>
+      <RouterProvider router={appRouter}>
         <NavigationContainer>{children}</NavigationContainer>
       </RouterProvider>
     </ScopeProvider>,
@@ -37,11 +37,11 @@ function renderWithNavigation(router: Router, appScope: Scope, children: React.R
 }
 
 async function attachHistory(
-  router: Router,
+  appRouter: Router,
   appScope: Scope,
   initialEntries: string[],
 ) {
-  await allSettled(router.setHistory, {
+  await allSettled(appRouter.setHistory, {
     scope: appScope,
     payload: historyAdapter(createMemoryHistory({ initialEntries }))
   });
@@ -62,12 +62,12 @@ async function openRoute(
 
 describe("react-native stack navigator", () => {
   test("renders active history route and follows parametrized route opens", async () => {
-    const homeRoute = createRoute({ path: "/home" });
-    const profileRoute = createRoute({ path: "/profile/:id" });
-    const router = createRouter({ routes: [homeRoute, profileRoute] });
+    const homeRoute = route({ path: "/home" });
+    const profileRoute = route({ path: "/profile/:id" });
+    const appRouter = router({ routes: [homeRoute, profileRoute] });
     const appScope = scope();
 
-    await attachHistory(router, appScope, ["/home"]);
+    await attachHistory(appRouter, appScope, ["/home"]);
 
     const routes: RouteView[] = [
       {
@@ -84,14 +84,14 @@ describe("react-native stack navigator", () => {
       }
     ];
 
-    const { Navigator } = createVirentiaStackNavigator({
-      router,
+    const { Navigator } = stackNavigator({
+      router: appRouter,
       routes,
       initialRouteName: "/home",
       screenOptions: { animation: "none", headerShown: false }
     });
 
-    renderWithNavigation(router, appScope, <Navigator />);
+    renderWithNavigation(appRouter, appScope, <Navigator />);
 
     expect(screen.getByTestId("home-screen")).toBeTruthy();
 
@@ -106,15 +106,15 @@ describe("react-native stack navigator", () => {
   });
 
   test("prefers a nested child view over its opened parent and can return to parent", async () => {
-    const profileRoute = createRoute({ path: "/profile" });
-    const friendsRoute = createRoute({
+    const profileRoute = route({ path: "/profile" });
+    const friendsRoute = route({
       path: "/friends",
       parent: profileRoute
     });
-    const router = createRouter({ routes: [friendsRoute, profileRoute] });
+    const appRouter = router({ routes: [friendsRoute, profileRoute] });
     const appScope = scope();
 
-    await attachHistory(router, appScope, ["/profile"]);
+    await attachHistory(appRouter, appScope, ["/profile"]);
 
     const routes: RouteView[] = [
       {
@@ -127,14 +127,14 @@ describe("react-native stack navigator", () => {
       }
     ];
 
-    const { Navigator } = createVirentiaStackNavigator({
-      router,
+    const { Navigator } = stackNavigator({
+      router: appRouter,
       routes,
       initialRouteName: "/profile",
       screenOptions: { animation: "none", headerShown: false }
     });
 
-    renderWithNavigation(router, appScope, <Navigator />);
+    renderWithNavigation(appRouter, appScope, <Navigator />);
 
     expect(screen.getByTestId("profile-screen")).toBeTruthy();
 
@@ -153,14 +153,14 @@ describe("react-native stack navigator", () => {
   });
 
   test("supports pathless virtual route screens and transformed params", async () => {
-    const homeRoute = createRoute({ path: "/home" });
-    const detailsRoute = createVirtualRoute({
+    const homeRoute = route({ path: "/home" });
+    const detailsRoute = virtualRoute({
       transformer: ({ id }: { id: string }) => ({ id, source: "virtual" })
     });
-    const router = createRouter({ routes: [homeRoute] });
+    const appRouter = router({ routes: [homeRoute] });
     const appScope = scope();
 
-    await attachHistory(router, appScope, ["/home"]);
+    await attachHistory(appRouter, appScope, ["/home"]);
 
     const routes: RouteView[] = [
       {
@@ -181,14 +181,14 @@ describe("react-native stack navigator", () => {
       }
     ];
 
-    const { Navigator } = createVirentiaStackNavigator({
-      router,
+    const { Navigator } = stackNavigator({
+      router: appRouter,
       routes,
       initialRouteName: "/home",
       screenOptions: { animation: "none", headerShown: false }
     });
 
-    renderWithNavigation(router, appScope, <Navigator />);
+    renderWithNavigation(appRouter, appScope, <Navigator />);
 
     expect(screen.getByTestId("home-screen")).toBeTruthy();
 
@@ -210,15 +210,15 @@ describe("react-native stack navigator", () => {
   });
 
   test("keeps the current React Navigation screen when an opened route has no view", async () => {
-    const homeRoute = createRoute({ path: "/home" });
-    const hiddenRoute = createRoute({ path: "/hidden" });
-    const router = createRouter({ routes: [homeRoute, hiddenRoute] });
+    const homeRoute = route({ path: "/home" });
+    const hiddenRoute = route({ path: "/hidden" });
+    const appRouter = router({ routes: [homeRoute, hiddenRoute] });
     const appScope = scope();
 
-    await attachHistory(router, appScope, ["/home"]);
+    await attachHistory(appRouter, appScope, ["/home"]);
 
-    const { Navigator } = createVirentiaStackNavigator({
-      router,
+    const { Navigator } = stackNavigator({
+      router: appRouter,
       routes: [
         {
           route: homeRoute,
@@ -229,7 +229,7 @@ describe("react-native stack navigator", () => {
       screenOptions: { animation: "none", headerShown: false }
     });
 
-    renderWithNavigation(router, appScope, <Navigator />);
+    renderWithNavigation(appRouter, appScope, <Navigator />);
 
     expect(screen.getByTestId("home-screen")).toBeTruthy();
 
@@ -244,14 +244,14 @@ describe("react-native stack navigator", () => {
 
 describe("react-native bottom tabs navigator", () => {
   test("opens routes on tab press in the provided Virentia scope", async () => {
-    const homeRoute = createRoute({ path: "/home" });
-    const searchRoute = createRoute({ path: "/search" });
-    const router = createRouter({ routes: [homeRoute, searchRoute] });
+    const homeRoute = route({ path: "/home" });
+    const searchRoute = route({ path: "/search" });
+    const appRouter = router({ routes: [homeRoute, searchRoute] });
     const appScope = scope();
 
-    await attachHistory(router, appScope, ["/home"]);
+    await attachHistory(appRouter, appScope, ["/home"]);
 
-    const routes: VirentiaBottomTabsRouteView[] = [
+    const routes: BottomTabsRouteView[] = [
       {
         route: homeRoute,
         view: () => <Text testID="home-tab-screen">Home</Text>
@@ -262,8 +262,8 @@ describe("react-native bottom tabs navigator", () => {
       }
     ];
 
-    const { Navigator } = createVirentiaBottomTabsNavigator({
-      router,
+    const { Navigator } = bottomTabsNavigator({
+      router: appRouter,
       routes,
       initialRouteName: "home",
       screenOptions: {
@@ -271,7 +271,7 @@ describe("react-native bottom tabs navigator", () => {
       }
     });
 
-    renderWithNavigation(router, appScope, <Navigator />);
+    renderWithNavigation(appRouter, appScope, <Navigator />);
 
     expect(screen.getByTestId("home-tab-screen")).toBeTruthy();
 
@@ -284,14 +284,14 @@ describe("react-native bottom tabs navigator", () => {
   });
 
   test("passes configured params and query when opening a tab route", async () => {
-    const homeRoute = createRoute({ path: "/home" });
-    const profileRoute = createRoute({ path: "/profile/:id" });
-    const router = createRouter({ routes: [homeRoute, profileRoute] });
+    const homeRoute = route({ path: "/home" });
+    const profileRoute = route({ path: "/profile/:id" });
+    const appRouter = router({ routes: [homeRoute, profileRoute] });
     const appScope = scope();
 
-    await attachHistory(router, appScope, ["/home"]);
+    await attachHistory(appRouter, appScope, ["/home"]);
 
-    const routes: VirentiaBottomTabsRouteView[] = [
+    const routes: BottomTabsRouteView[] = [
       {
         route: homeRoute,
         view: () => <Text testID="home-tab-screen">Home</Text>
@@ -304,7 +304,7 @@ describe("react-native bottom tabs navigator", () => {
         },
         view: () => {
           const params = useUnit(profileRoute.params);
-          const query = useUnit(router.query);
+          const query = useUnit(appRouter.query);
 
           return (
             <Text testID="profile-tab-screen">
@@ -315,8 +315,8 @@ describe("react-native bottom tabs navigator", () => {
       }
     ];
 
-    const { Navigator } = createVirentiaBottomTabsNavigator({
-      router,
+    const { Navigator } = bottomTabsNavigator({
+      router: appRouter,
       routes,
       initialRouteName: "home",
       screenOptions: {
@@ -324,13 +324,13 @@ describe("react-native bottom tabs navigator", () => {
       }
     });
 
-    renderWithNavigation(router, appScope, <Navigator />);
+    renderWithNavigation(appRouter, appScope, <Navigator />);
 
     fireEvent.press(screen.getByText("profile"));
 
     await waitFor(() => {
       expect(scoped(appScope, () => profileRoute.params.value.id)).toBe("42");
-      expect(scoped(appScope, () => router.query.value.source)).toBe("tab");
+      expect(scoped(appScope, () => appRouter.query.value.source)).toBe("tab");
       expect(screen.getByTestId("profile-tab-screen").props.children).toEqual([
         "Profile ",
         "42",
@@ -341,15 +341,15 @@ describe("react-native bottom tabs navigator", () => {
   });
 
   test("follows external route opens with fresh params", async () => {
-    const homeRoute = createRoute({ path: "/home" });
-    const profileRoute = createRoute({ path: "/profile/:id" });
-    const router = createRouter({ routes: [homeRoute, profileRoute] });
+    const homeRoute = route({ path: "/home" });
+    const profileRoute = route({ path: "/profile/:id" });
+    const appRouter = router({ routes: [homeRoute, profileRoute] });
     const appScope = scope();
 
-    await attachHistory(router, appScope, ["/home"]);
+    await attachHistory(appRouter, appScope, ["/home"]);
 
-    const { Navigator } = createVirentiaBottomTabsNavigator({
-      router,
+    const { Navigator } = bottomTabsNavigator({
+      router: appRouter,
       routes: [
         {
           route: homeRoute,
@@ -370,7 +370,7 @@ describe("react-native bottom tabs navigator", () => {
       }
     });
 
-    renderWithNavigation(router, appScope, <Navigator />);
+    renderWithNavigation(appRouter, appScope, <Navigator />);
 
     expect(screen.getByTestId("home-tab-screen")).toBeTruthy();
 
@@ -385,17 +385,17 @@ describe("react-native bottom tabs navigator", () => {
   });
 
   test("uses stable fallback labels for root and pathless tabs", async () => {
-    const rootRoute = createRoute({ path: "/" });
-    const detailsRoute = createVirtualRoute({
+    const rootRoute = route({ path: "/" });
+    const detailsRoute = virtualRoute({
       transformer: (payload: { id: string }) => payload
     });
-    const router = createRouter({ routes: [rootRoute] });
+    const appRouter = router({ routes: [rootRoute] });
     const appScope = scope();
 
-    await attachHistory(router, appScope, ["/"]);
+    await attachHistory(appRouter, appScope, ["/"]);
 
-    const { Navigator } = createVirentiaBottomTabsNavigator({
-      router,
+    const { Navigator } = bottomTabsNavigator({
+      router: appRouter,
       routes: [
         {
           route: rootRoute,
@@ -417,7 +417,7 @@ describe("react-native bottom tabs navigator", () => {
       }
     });
 
-    renderWithNavigation(router, appScope, <Navigator />);
+    renderWithNavigation(appRouter, appScope, <Navigator />);
 
     const rootTabLabels = screen.getAllByText("Tab 1");
     const detailsTabLabels = screen.getAllByText("Tab 2");

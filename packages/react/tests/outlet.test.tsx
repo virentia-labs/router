@@ -2,8 +2,8 @@ import { allSettled, scope, scoped } from "@virentia/core";
 import { createMemoryHistory } from "history";
 import { describe, expect, test } from "vitest";
 import { act, waitFor } from "@testing-library/react";
-import { createRoute, createRouter, historyAdapter, type Route } from "@virentia/router";
-import { createRouteView, createRoutesView, Outlet } from "../lib";
+import { route, router, historyAdapter, type Route } from "@virentia/router";
+import { routeView, routesView, Outlet } from "../lib";
 import { openRoute, renderWithRouter } from "./utils";
 
 async function waitForOpened<T extends object | void>(appScope: ReturnType<typeof scope>, route: Route<T>) {
@@ -16,15 +16,15 @@ async function waitForOpened<T extends object | void>(appScope: ReturnType<typeo
 
 describe("Outlet", () => {
   test("renders child route in outlet", async () => {
-    const profileRoute = createRoute({ path: "/profile" });
-    const settingsRoute = createRoute({
+    const profileRoute = route({ path: "/profile" });
+    const settingsRoute = route({
       path: "/settings",
       parent: profileRoute
     });
     const appScope = scope();
-    const router = createRouter({ routes: [profileRoute, settingsRoute] });
+    const appRouter = router({ routes: [profileRoute, settingsRoute] });
 
-    await allSettled(router.setHistory, {
+    await allSettled(appRouter.setHistory, {
       scope: appScope,
       payload: historyAdapter(createMemoryHistory({ initialEntries: ["/profile"] }))
     });
@@ -37,7 +37,7 @@ describe("Outlet", () => {
       </div>
     );
     const SettingsView = () => <p data-testid="settings">Settings</p>;
-    const RoutesView = createRoutesView({
+    const RoutesView = routesView({
       routes: [
         {
           route: profileRoute,
@@ -52,7 +52,7 @@ describe("Outlet", () => {
       ]
     });
 
-    const { getByTestId, queryByTestId } = renderWithRouter(router, appScope, <RoutesView />);
+    const { getByTestId, queryByTestId } = renderWithRouter(appRouter, appScope, <RoutesView />);
 
     expect(getByTestId("profile").textContent).toBe("Profile");
     expect(queryByTestId("settings")).toBeFalsy();
@@ -66,15 +66,15 @@ describe("Outlet", () => {
   });
 
   test("outlet renders nothing when no child route is active", async () => {
-    const profileRoute = createRoute({ path: "/profile" });
-    const settingsRoute = createRoute({
+    const profileRoute = route({ path: "/profile" });
+    const settingsRoute = route({
       path: "/settings",
       parent: profileRoute
     });
     const appScope = scope();
-    const router = createRouter({ routes: [profileRoute, settingsRoute] });
+    const appRouter = router({ routes: [profileRoute, settingsRoute] });
 
-    await allSettled(router.setHistory, {
+    await allSettled(appRouter.setHistory, {
       scope: appScope,
       payload: historyAdapter(createMemoryHistory({ initialEntries: ["/profile"] }))
     });
@@ -89,7 +89,7 @@ describe("Outlet", () => {
       </div>
     );
     const SettingsView = () => <p data-testid="settings">Settings</p>;
-    const RoutesView = createRoutesView({
+    const RoutesView = routesView({
       routes: [
         {
           route: profileRoute,
@@ -104,7 +104,7 @@ describe("Outlet", () => {
       ]
     });
 
-    const { getByTestId, queryByTestId } = renderWithRouter(router, appScope, <RoutesView />);
+    const { getByTestId, queryByTestId } = renderWithRouter(appRouter, appScope, <RoutesView />);
 
     expect(getByTestId("profile").textContent).toBe("Profile");
     expect(getByTestId("outlet-container").children.length).toBe(0);
@@ -112,21 +112,21 @@ describe("Outlet", () => {
   });
 
   test("outlet switches between sibling routes", async () => {
-    const profileRoute = createRoute({ path: "/profile" });
-    const settingsRoute = createRoute({
+    const profileRoute = route({ path: "/profile" });
+    const settingsRoute = route({
       path: "/settings",
       parent: profileRoute
     });
-    const notificationsRoute = createRoute({
+    const notificationsRoute = route({
       path: "/notifications",
       parent: profileRoute
     });
     const appScope = scope();
-    const router = createRouter({
+    const appRouter = router({
       routes: [profileRoute, settingsRoute, notificationsRoute]
     });
 
-    await allSettled(router.setHistory, {
+    await allSettled(appRouter.setHistory, {
       scope: appScope,
       payload: historyAdapter(createMemoryHistory({ initialEntries: ["/profile"] }))
     });
@@ -140,7 +140,7 @@ describe("Outlet", () => {
     );
     const SettingsView = () => <p data-testid="settings">Settings</p>;
     const NotificationsView = () => <p data-testid="notifications">Notifications</p>;
-    const RoutesView = createRoutesView({
+    const RoutesView = routesView({
       routes: [
         {
           route: profileRoute,
@@ -159,7 +159,7 @@ describe("Outlet", () => {
       ]
     });
 
-    const { getByTestId, queryByTestId } = renderWithRouter(router, appScope, <RoutesView />);
+    const { getByTestId, queryByTestId } = renderWithRouter(appRouter, appScope, <RoutesView />);
 
     await openRoute(settingsRoute, appScope);
     await waitFor(() => {
@@ -182,15 +182,15 @@ describe("Outlet", () => {
   });
 
   test("outlet with simple nested routes", async () => {
-    const dashboardRoute = createRoute({ path: "/dashboard" });
-    const settingsRoute = createRoute({
+    const dashboardRoute = route({ path: "/dashboard" });
+    const settingsRoute = route({
       path: "/settings",
       parent: dashboardRoute
     });
     const appScope = scope();
-    const router = createRouter({ routes: [dashboardRoute, settingsRoute] });
+    const appRouter = router({ routes: [dashboardRoute, settingsRoute] });
 
-    await allSettled(router.setHistory, {
+    await allSettled(appRouter.setHistory, {
       scope: appScope,
       payload: historyAdapter(createMemoryHistory({ initialEntries: ["/dashboard"] }))
     });
@@ -203,7 +203,7 @@ describe("Outlet", () => {
       </div>
     );
     const SettingsView = () => <p data-testid="settings">Settings Content</p>;
-    const RoutesView = createRoutesView({
+    const RoutesView = routesView({
       routes: [
         {
           route: dashboardRoute,
@@ -218,7 +218,7 @@ describe("Outlet", () => {
       ]
     });
 
-    const { getByTestId, queryByTestId } = renderWithRouter(router, appScope, <RoutesView />);
+    const { getByTestId, queryByTestId } = renderWithRouter(appRouter, appScope, <RoutesView />);
 
     expect(getByTestId("dashboard").textContent).toBe("Dashboard");
     expect(queryByTestId("settings")).toBeFalsy();
@@ -231,23 +231,23 @@ describe("Outlet", () => {
     });
   });
 
-  test("outlet with nested router", async () => {
+  test("outlet with nested appRouter", async () => {
     const rootRoutes = {
-      profile: createRoute({ path: "/profile" })
+      profile: route({ path: "/profile" })
     };
     const profileRoutes = {
-      friends: createRoute({ path: "/friends", parent: rootRoutes.profile }),
-      settings: createRoute({ path: "/settings", parent: rootRoutes.profile })
+      friends: route({ path: "/friends", parent: rootRoutes.profile }),
+      settings: route({ path: "/settings", parent: rootRoutes.profile })
     };
-    const profileRouter = createRouter({
+    const profileRouter = router({
       routes: [profileRoutes.friends, profileRoutes.settings]
     });
-    const router = createRouter({
+    const appRouter = router({
       routes: [rootRoutes.profile, profileRouter]
     });
     const appScope = scope();
 
-    await allSettled(router.setHistory, {
+    await allSettled(appRouter.setHistory, {
       scope: appScope,
       payload: historyAdapter(createMemoryHistory({ initialEntries: ["/profile"] }))
     });
@@ -259,7 +259,7 @@ describe("Outlet", () => {
         <Outlet />
       </div>
     );
-    const ProfileRoutesView = createRoutesView({
+    const ProfileRoutesView = routesView({
       routes: [
         {
           route: profileRoutes.friends,
@@ -271,7 +271,7 @@ describe("Outlet", () => {
         }
       ]
     });
-    const RoutesView = createRoutesView({
+    const RoutesView = routesView({
       routes: [
         {
           route: rootRoutes.profile,
@@ -286,7 +286,7 @@ describe("Outlet", () => {
       ]
     });
 
-    const { getByTestId, queryByTestId } = renderWithRouter(router, appScope, <RoutesView />);
+    const { getByTestId, queryByTestId } = renderWithRouter(appRouter, appScope, <RoutesView />);
 
     expect(getByTestId("profile").textContent).toBe("Profile");
     expect(queryByTestId("friends")).toBeFalsy();
@@ -317,24 +317,24 @@ describe("Outlet", () => {
     });
   });
 
-  test("outlet with nested routes created via createRouteView", async () => {
-    const profileRoute = createRoute({ path: "/profile" });
-    const settingsRoute = createRoute({
+  test("outlet with nested routes created via routeView", async () => {
+    const profileRoute = route({ path: "/profile" });
+    const settingsRoute = route({
       path: "/settings",
       parent: profileRoute
     });
     const appScope = scope();
-    const router = createRouter({ routes: [profileRoute, settingsRoute] });
+    const appRouter = router({ routes: [profileRoute, settingsRoute] });
 
-    await allSettled(router.setHistory, {
+    await allSettled(appRouter.setHistory, {
       scope: appScope,
       payload: historyAdapter(createMemoryHistory({ initialEntries: ["/profile/settings"] }))
     });
     await waitForOpened(appScope, settingsRoute);
 
-    const RoutesView = createRoutesView({
+    const RoutesView = routesView({
       routes: [
-        createRouteView({
+        routeView({
           route: profileRoute,
           view: () => (
             <div>
@@ -343,7 +343,7 @@ describe("Outlet", () => {
             </div>
           ),
           children: [
-            createRouteView({
+            routeView({
               route: settingsRoute,
               view: () => <p data-testid="settings">Settings</p>
             })
@@ -352,7 +352,7 @@ describe("Outlet", () => {
       ]
     });
 
-    const { container } = renderWithRouter(router, appScope, <RoutesView />);
+    const { container } = renderWithRouter(appRouter, appScope, <RoutesView />);
 
     await waitFor(() =>
       expect(container).toMatchInlineSnapshot(`

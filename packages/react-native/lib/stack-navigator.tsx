@@ -7,32 +7,32 @@ import {
 import type { Router } from "@virentia/router";
 import { useOpenedViews, type RouteView } from "@virentia/router-react";
 import {
-  createScreenComponent,
+  screenComponent,
   getRouteKey,
   getStackRouteName
 } from "./navigation-utils";
 
-export interface VirentiaStackNavigatorConfig {
+export interface StackNavigatorConfig {
   router: Router;
   routes: RouteView[];
   screenOptions?: StackNavigationOptions;
   initialRouteName?: string;
 }
 
-export type { StackNavigationOptions as VirentiaStackNavigatorOptions };
+export type { StackNavigationOptions as StackNavigatorOptions };
 
 const Stack = createStackNavigator();
 
-export function createVirentiaStackNavigator(
-  config: VirentiaStackNavigatorConfig,
+export function stackNavigator(
+  config: StackNavigatorConfig,
 ): { Navigator: React.ComponentType } {
   const { initialRouteName, routes, screenOptions } = config;
   const screens = routes.map((routeView) => ({
     routeView,
-    component: createScreenComponent(routeView)
+    component: screenComponent(routeView)
   }));
 
-  function VirentiaStackNavigator() {
+  function StackNavigator() {
     const openedViews = useOpenedViews(routes);
     const navigationRef = React.useRef<any>(null);
     const navigatorProps = {
@@ -85,5 +85,5 @@ export function createVirentiaStackNavigator(
     );
   }
 
-  return { Navigator: VirentiaStackNavigator };
+  return { Navigator: StackNavigator };
 }

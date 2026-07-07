@@ -26,20 +26,20 @@ type WithBaseRouteConfig<T = object> = T & {
   beforeOpen?: RouteBeforeOpen<any>[];
 };
 
-export type CreateRouteConfig<Path> =
+export type RouteConfig<Path> =
   ValidatePath<Path> extends ["invalid", infer Template]
     ? WithBaseRouteConfig<{ path: Template }>
     : WithBaseRouteConfig<{ path: Path }>;
 
-export function createRoute<
+export function route<
   T extends string,
   Params extends object | void = ParseUrlParams<T>,
->(config: CreateRouteConfig<T>): PathRoute<Params>;
-export function createRoute<Params extends object | void = void>(
+>(config: RouteConfig<T>): PathRoute<Params>;
+export function route<Params extends object | void = void>(
   config?: WithBaseRouteConfig,
 ): PathlessRoute<Params>;
-export function createRoute<Params extends object | void = void>(
-  config: WithBaseRouteConfig | CreateRouteConfig<any> = {},
+export function route<Params extends object | void = void>(
+  config: WithBaseRouteConfig | RouteConfig<any> = {},
 ): PathRoute<Params> | PathlessRoute<Params> {
   const preloaders = new Set<RoutePreloader>();
   const beforeOpen = config.beforeOpen ?? [];
@@ -75,7 +75,7 @@ export function createRoute<Params extends object | void = void>(
 
   const isPending = computed(() => openFx.pending.value || activateFx.pending.value);
 
-  const route = {
+  const self = {
     "@@type": "path" in config ? "path-route" : "pathless-route",
 
     params,
@@ -140,7 +140,7 @@ export function createRoute<Params extends object | void = void>(
     }
   });
 
-  return route;
+  return self;
 
   async function openRoute(
     payload: InternalOpenedPayload<Params>,
@@ -171,7 +171,7 @@ export function createRoute<Params extends object | void = void>(
     payload: InternalOpenedPayload<Params>,
     inRouteScope: ScopedRunner,
   ): Promise<InternalOpenedPayload<Params>> {
-    const nextKey = createActivationKey(payload, defaultParams);
+    const nextKey = activationKeyOf(payload, defaultParams);
     const alreadyActive = inRouteScope(
       () => isOpened.value && activationKey.value === nextKey,
     );
@@ -261,7 +261,7 @@ function readPayloadParams<T extends object | void>(
   return fallback;
 }
 
-function createActivationKey<T extends object | void>(
+function activationKeyOf<T extends object | void>(
   payload: InternalOpenedPayload<T>,
   fallback: T,
 ): string {

@@ -8,7 +8,7 @@ import { useUnit } from "@virentia/react";
 import type { Route, Router, VirtualRoute } from "@virentia/router";
 import { useOpenedViews, type RouteView } from "@virentia/router-react";
 import {
-  createScreenComponent,
+  screenComponent,
   getRouteKey,
   getTabRouteName,
   getTabTitle,
@@ -19,31 +19,31 @@ type OpenableRouteView = RouteView & {
   route: Route<any> | VirtualRoute<any, any>;
 };
 
-export interface VirentiaBottomTabsRouteView extends RouteView {
+export interface BottomTabsRouteView extends RouteView {
   openPayload?: unknown | (() => unknown);
 }
 
-export interface VirentiaBottomTabsNavigatorConfig {
+export interface BottomTabsNavigatorConfig {
   router: Router;
-  routes: VirentiaBottomTabsRouteView[];
+  routes: BottomTabsRouteView[];
   screenOptions?: BottomTabNavigationOptions;
   initialRouteName?: string;
 }
 
-export type { BottomTabNavigationOptions as VirentiaBottomTabsNavigatorOptions };
+export type { BottomTabNavigationOptions as BottomTabsNavigatorOptions };
 
 const Tab = createBottomTabNavigator();
 
-export function createVirentiaBottomTabsNavigator(
-  config: VirentiaBottomTabsNavigatorConfig,
+export function bottomTabsNavigator(
+  config: BottomTabsNavigatorConfig,
 ): { Navigator: React.ComponentType } {
   const { initialRouteName, routes, screenOptions } = config;
   const screens = routes.map((routeView) => ({
     routeView,
-    component: createScreenComponent(routeView)
+    component: screenComponent(routeView)
   }));
 
-  function VirentiaBottomTabsNavigator() {
+  function BottomTabsNavigator() {
     const openedViews = useOpenedViews(routes);
     const openableViews = routes.filter(isOpenableRouteView);
     const openRoutes = useUnit(openableViews.map((routeView) => routeView.route.open));
@@ -75,7 +75,7 @@ export function createVirentiaBottomTabsNavigator(
       navigationRef.current.navigate(routeName);
     }, [openedViews, routes]);
 
-    function openRoute(routeView: VirentiaBottomTabsRouteView): void {
+    function openRoute(routeView: BottomTabsRouteView): void {
       const openIndex = openableViews.findIndex((view) => view.route === routeView.route);
       const open = openRoutes[openIndex] as ((payload?: unknown) => Promise<void>) | undefined;
 
@@ -124,14 +124,14 @@ export function createVirentiaBottomTabsNavigator(
     );
   }
 
-  return { Navigator: VirentiaBottomTabsNavigator };
+  return { Navigator: BottomTabsNavigator };
 }
 
 function isOpenableRouteView(routeView: RouteView): routeView is OpenableRouteView {
   return hasOpen(routeView.route);
 }
 
-function readOpenPayload(routeView: VirentiaBottomTabsRouteView): unknown {
+function readOpenPayload(routeView: BottomTabsRouteView): unknown {
   if (typeof routeView.openPayload === "function") {
     return routeView.openPayload();
   }

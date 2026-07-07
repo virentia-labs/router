@@ -7,7 +7,7 @@ import {
   type EventCallable,
   type UnitList
 } from "@virentia/core";
-import { createVirtualRoute } from "./create-virtual-route";
+import { virtualRoute } from "./virtual-route";
 import type {
   AsyncBundleImport,
   Route,
@@ -58,7 +58,7 @@ export function chainRoute<T extends object | void = void>(
     }
   }
 
-  const virtualRoute = createVirtualRoute<RouteOpenedPayload<T>, T>({
+  const self = virtualRoute<RouteOpenedPayload<T>, T>({
     isPending,
     transformer
   });
@@ -67,7 +67,7 @@ export function chainRoute<T extends object | void = void>(
     on: route.opened,
     run(payload: any) {
       lastPayload.value = payload as RouteOpenedPayload<T>;
-      virtualRoute.params.value = transformer(payload as RouteOpenedPayload<T>);
+      self.params.value = transformer(payload as RouteOpenedPayload<T>);
       void runBeforeOpen(payload as RouteOpenedPayload<T>);
     }
   });
@@ -76,7 +76,7 @@ export function chainRoute<T extends object | void = void>(
     reaction({
       on: openOn,
       run() {
-        void virtualRoute.open(lastPayload.value ?? ({} as RouteOpenedPayload<T>));
+        void self.open(lastPayload.value ?? ({} as RouteOpenedPayload<T>));
       }
     });
   }
@@ -85,19 +85,19 @@ export function chainRoute<T extends object | void = void>(
     reaction({
       on: [route.closed, ...toArray(cancelOn)] as UnitList<any>,
       run() {
-        void virtualRoute.close();
+        void self.close();
       }
     });
 
     reaction({
       on: cancelOn,
       run() {
-        void virtualRoute.cancelled();
+        void self.cancelled();
       }
     });
   }
 
-  return Object.assign(virtualRoute, {
+  return Object.assign(self, {
     internal: {
       setAsyncImport(value: AsyncBundleImport) {
         asyncImport = value;

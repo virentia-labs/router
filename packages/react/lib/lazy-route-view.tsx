@@ -2,7 +2,7 @@ import { lazy, Suspense } from "react";
 import type { AsyncBundleImport } from "@virentia/router";
 import type { CreateLazyRouteViewProps, RouteView } from "./types";
 
-export function createLazyRouteView<T extends object | void = void>(
+export function lazyRouteView<T extends object | void = void>(
   props: CreateLazyRouteViewProps<T>,
 ): RouteView {
   const { fallback: Fallback, layout: Layout, view: importView } = props;

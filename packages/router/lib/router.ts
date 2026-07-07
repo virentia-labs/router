@@ -1,6 +1,6 @@
 import { computed, reaction, scoped } from "@virentia/core";
 import { compile } from "@virentia/router-paths";
-import { createRouterControls } from "./create-router-controls";
+import { routerControls } from "./router-controls";
 import { trackQueryFactory } from "./track-query";
 import type {
   CreateRouterConfig,
@@ -32,9 +32,9 @@ const inputIs = {
   }
 };
 
-export function createRouter(config: CreateRouterConfig): Router {
+export function router(config: CreateRouterConfig): Router {
   const { base = "/", routes } = config;
-  const controls = config.controls ?? createRouterControls();
+  const controls = config.controls ?? routerControls();
   const ownRoutes: MappedRoute[] = [];
   const knownRoutes: MappedRoute[] = [];
   let parent: Router | null = null;
@@ -92,7 +92,7 @@ export function createRouter(config: CreateRouterConfig): Router {
     for (const { route, params } of desired) {
       addMatchedRoute(route, matchedRoutes);
 
-      const payload = createActivationPayload(params, location.query, skipBeforeOpen);
+      const payload = activationPayload(params, location.query, skipBeforeOpen);
 
       await route.internal.activateRoute(payload, inRouterScope);
     }
@@ -104,7 +104,7 @@ export function createRouter(config: CreateRouterConfig): Router {
     }
   }
 
-  const router = {
+  const self = {
     "@@type": "router",
 
     query: controls.query,
@@ -131,7 +131,7 @@ export function createRouter(config: CreateRouterConfig): Router {
       }
 
       if (inputIs.router(inputRoute)) {
-        inputRoute.internal.parent = router;
+        inputRoute.internal.parent = self;
         knownRoutes.push(...inputRoute.knownRoutes);
       }
     },
@@ -162,7 +162,7 @@ export function createRouter(config: CreateRouterConfig): Router {
   } satisfies Router;
 
   for (const route of routes) {
-    router.registerRoute(route);
+    self.registerRoute(route);
   }
 
   reaction({
@@ -172,7 +172,7 @@ export function createRouter(config: CreateRouterConfig): Router {
     }
   });
 
-  return router;
+  return self;
 
   function registerRouteApi({ route, build }: MappedRoute) {
     reaction({
@@ -270,7 +270,7 @@ export function createRouter(config: CreateRouterConfig): Router {
   }
 }
 
-function createActivationPayload(
+function activationPayload(
   params: unknown,
   query: Query,
   skipBeforeOpen: boolean,

@@ -66,7 +66,7 @@ export function trackQueryFactory({
       const active = routeIsActive(config.forRoutes, currentRoutes) && parsed.success;
 
       if (active && parsed.success) {
-        const nextKey = createEntryKey(parsed.data, config.forRoutes, currentRoutes);
+        const nextKey = entryKey(parsed.data, config.forRoutes, currentRoutes);
 
         if (entryState.value.entered && entryState.value.key === nextKey) {
           return;
@@ -159,7 +159,7 @@ export function trackQueryFactory({
   };
 }
 
-function createEntryKey(
+function entryKey(
   data: unknown,
   forRoutes: Route<any>[] | undefined,
   activeRoutes: Route<any>[],
