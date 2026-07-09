@@ -4,7 +4,7 @@ import { act, render, waitFor, type RenderResult } from "@testing-library/react"
 import type { ReactNode } from "react";
 import type { Route, Router, RouterAdapter } from "@virentia/router";
 import { expect } from "vitest";
-import { RouterProvider } from "../lib";
+import { RouterProvider } from "../../lib";
 
 export function renderWithRouter(
   router: Router,
