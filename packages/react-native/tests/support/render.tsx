@@ -9,7 +9,11 @@ import { historyAdapter } from "@virentia/router";
 import type { Route, Router } from "@virentia/router";
 import { RouterProvider } from "@virentia/router-react";
 
-export function renderWithNavigation(appRouter: Router, appScope: Scope, children: React.ReactNode) {
+export function renderWithNavigation(
+  appRouter: Router,
+  appScope: Scope,
+  children: React.ReactNode,
+): ReturnType<typeof render> {
   return render(
     <ScopeProvider scope={appScope}>
       <RouterProvider router={appRouter}>
