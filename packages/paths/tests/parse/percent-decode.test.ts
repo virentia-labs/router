@@ -12,5 +12,12 @@ describe("parse", () => {
       expect(() => compile("/p/:id").parse("/p/%E0%A4%A")).not.toThrow();
       expect(compile("/p/:id").parse("/p/%")).toStrictEqual({ path: "/p/%", params: { id: "%" } });
     });
+
+    it("keeps the raw text of a malformed sequence as the value", () => {
+      expect(compile("/p/:id").parse("/p/%E0%A4%A")).toStrictEqual({
+        path: "/p/%E0%A4%A",
+        params: { id: "%E0%A4%A" }
+      });
+    });
   });
 });
