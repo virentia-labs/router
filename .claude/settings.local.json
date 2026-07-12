@@ -1,0 +1,8 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(cd /Users/edward/virentia/documentation && cat package.json | grep -A6 '\"scripts\"')",
+      "Read(//Users/edward/virentia/documentation/**)"
+    ]
+  }
+}

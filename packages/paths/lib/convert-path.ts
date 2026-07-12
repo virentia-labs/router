@@ -1,13 +1,17 @@
 type CompatibilityMode = "express";
 
+// Each pass is local to a single parameter: the name is captured (\w+) rather than
+// hardcoded to "id", and the generic/range bodies use non-greedy character classes
+// ([^>]/[^}]) so a pass never spans across an intervening segment or a second
+// parameter.
 const cases = {
   express: [
-    [/:id<.+>/g, ":id"],
-    [/:id\+/g, "*id"],
-    [/:id\*/g, "*id"],
-    [/:id\{.+\}/g, "*id"],
-    [/([a-zA-Z0-9:/_.]+)\/([*:])id\?/g, "$1{/$2id}"],
-    [/([*:])id\?/g, "{$1id}"]
+    [/:(\w+)<[^>]+>/g, ":$1"],
+    [/:(\w+)\+/g, "*$1"],
+    [/:(\w+)\*/g, "*$1"],
+    [/:(\w+)\{[^}]+\}/g, "*$1"],
+    [/([a-zA-Z0-9:/_.\-~%]+)\/([*:])(\w+)\?/g, "$1{/$2$3}"],
+    [/([*:])(\w+)\?/g, "{$1$2}"]
   ]
 } as const;
 
@@ -24,5 +28,8 @@ export function convertPath(path: string, mode: CompatibilityMode): string {
 
       return nextPath;
     }
+
+    default:
+      return path;
   }
 }

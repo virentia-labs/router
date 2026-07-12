@@ -8,10 +8,14 @@ export function lazyRouteView<T extends object | void = void>(
   const { fallback: Fallback, layout: Layout, view: importView } = props;
   const LazyView = lazy(importView);
   const internalRoute = props.route as {
-    internal?: { setAsyncImport(value: AsyncBundleImport): void };
+    internal?: { setAsyncImport?: (value: AsyncBundleImport) => void };
   };
 
-  internalRoute.internal?.setAsyncImport(importView as AsyncBundleImport);
+  // A Router also has `internal`, but no setAsyncImport — guard the method itself,
+  // not just the presence of `internal`, so a lazy view over a Router doesn't crash.
+  if (typeof internalRoute.internal?.setAsyncImport === "function") {
+    internalRoute.internal.setAsyncImport(importView as AsyncBundleImport);
+  }
 
   const view = function LazyRouteView() {
     const content = (

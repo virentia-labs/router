@@ -66,8 +66,11 @@ export function chainRoute<T extends object | void = void>(
   reaction({
     on: route.opened,
     run(payload: any) {
+      // Remember the payload for the deferred open, but do NOT write self.params
+      // yet: the guard may still reject, and a rejected chain must not leak the
+      // source route's params into a route that never opens. params are set when
+      // self.open actually fires (via the virtualRoute transformer).
       lastPayload.value = payload as RouteOpenedPayload<T>;
-      self.params.value = transformer(payload as RouteOpenedPayload<T>);
       void runBeforeOpen(payload as RouteOpenedPayload<T>);
     }
   });
@@ -81,17 +84,20 @@ export function chainRoute<T extends object | void = void>(
     });
   }
 
-  if (cancelOn) {
-    reaction({
-      on: [route.closed, ...toArray(cancelOn)] as UnitList<any>,
-      run() {
-        void self.close();
-      }
-    });
+  // Closing the source route always closes the chained route, whether or not a
+  // cancelOn is configured — a chained route cannot outlive its source.
+  reaction({
+    on: route.closed,
+    run() {
+      void self.close();
+    }
+  });
 
+  if (cancelOn) {
     reaction({
       on: cancelOn,
       run() {
+        void self.close();
         void self.cancelled();
       }
     });
@@ -112,8 +118,4 @@ function transformer<T extends object | void>(payload: RouteOpenedPayload<T>): T
   }
 
   return {} as T;
-}
-
-function toArray(value: UnitList<any>): any[] {
-  return Array.isArray(value) ? [...value] : [value];
 }

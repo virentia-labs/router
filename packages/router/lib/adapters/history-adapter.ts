@@ -2,7 +2,11 @@ import type { HistoryLike, RouterAdapter, RouterSubscription } from "../types";
 
 export function historyAdapter(history: HistoryLike): RouterAdapter {
   return {
-    location: history.location,
+    // A getter, not a snapshot: the router reads `location` right after a push to
+    // detect a blocked navigation, so it must reflect the live history location.
+    get location() {
+      return history.location;
+    },
 
     push: history.push.bind(history),
     replace: history.replace.bind(history),
@@ -21,7 +25,15 @@ export function historyAdapter(history: HistoryLike): RouterAdapter {
 }
 
 function normalizeSubscription(unsubscribe: (() => void) | RouterSubscription): RouterSubscription {
-  return typeof unsubscribe === "function"
-    ? { unsubscribe }
-    : unsubscribe;
+  if (typeof unsubscribe === "function") {
+    return { unsubscribe };
+  }
+
+  // Guard against a history that returns neither a function nor a subscription
+  // object: hand back a no-op so `.unsubscribe()` never throws.
+  if (unsubscribe && typeof unsubscribe.unsubscribe === "function") {
+    return unsubscribe;
+  }
+
+  return { unsubscribe() {} };
 }

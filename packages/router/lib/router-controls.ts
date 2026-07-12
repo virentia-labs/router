@@ -114,15 +114,21 @@ export function routerControls(): RouterControls {
         search
       };
 
+      const before = formatUrl(history.location.pathname, history.location.search);
+
       if (payload.replace) {
         history.replace(to);
       } else {
         history.push(to);
       }
 
-      // History refused the change (e.g. a navigation block): drop the marker so
-      // a later genuine navigation to the same URL isn't mistaken for an echo.
-      if (formatUrl(history.location.pathname, history.location.search) !== url) {
+      // If the URL did not actually change to our target, the navigation was
+      // refused (e.g. a history block) — even when the blocked target equals the
+      // URL we are already on. Drop the marker so a later genuine external
+      // navigation to that same URL isn't misclassified as our own echo.
+      const after = formatUrl(history.location.pathname, history.location.search);
+
+      if (after !== url || after === before) {
         committedUrl.value = { current: null };
       }
     }

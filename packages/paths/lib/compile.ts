@@ -5,7 +5,11 @@ import type { ParameterToken, ParseUrlParams, Token } from "./types";
 
 export function compile<T extends string, Params = ParseUrlParams<T>>(path: T) {
   const tokens: Token[] = [];
-  const regexp = /:(\w+)(<[\s?\w|]+>)?({\d+,\d+})?([+*?])?/;
+  // Anchored to the whole segment: a "/"-split segment is a parameter only when
+  // it IS `:name<generic>{range}modifier`, not when it merely CONTAINS one. This
+  // prevents a literal segment like "a:b" or "localhost:3000" from being silently
+  // reinterpreted as a parameter.
+  const regexp = /^:(\w+)(<[\s?\w|]+>)?({\d+,\d+})?([+*?])?$/;
   const parsedTokens = path.split("/").filter(Boolean);
 
   for (const parsedToken of parsedTokens) {

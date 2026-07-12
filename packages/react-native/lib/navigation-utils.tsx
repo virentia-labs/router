@@ -18,7 +18,11 @@ export function getTabRouteName(route: NavigationRoute, index: number): string {
   const path = getStringPath(route);
 
   if (path) {
-    return path.replace(/\//g, "") || `Tab${index}`;
+    // Injective encoding so distinct paths always yield distinct tab names:
+    // escape literal dashes first ("-" -> "--"), THEN map the segment separator
+    // "/" -> "-". Without the escape, "/a/b" and "/a-b" would both become "a-b"
+    // and react-navigation throws on the duplicate screen name.
+    return path.replace(/^\/+/, "").replace(/-/g, "--").replace(/\//g, "-") || `Tab${index}`;
   }
 
   return `Tab${index}`;
@@ -55,7 +59,8 @@ export function screenComponent(routeView: RouteView): ComponentType {
   const View = routeView.view;
 
   return function RouteScreen() {
-    return createElement(View);
+    // A route view with no component must not crash the whole navigator.
+    return View ? createElement(View) : null;
   };
 }
 

@@ -105,8 +105,8 @@ export function bottomTabsNavigator(
             name={getTabRouteName(routeView.route, index)}
             component={component}
             options={{
-              title: getTabTitle(routeView.route, index),
-              ...screenOptions
+              ...screenOptions,
+              title: getTabTitle(routeView.route, index)
             }}
             listeners={{
               tabPress(event) {

@@ -7,6 +7,10 @@ export default defineConfig({
     }
   },
   test: {
-    environment: "node"
+    environment: "node",
+    typecheck: {
+      tsconfig: new URL("../../tsconfig.json", import.meta.url).pathname,
+      include: ["**/*.test-d.ts"]
+    }
   }
 });

@@ -210,11 +210,14 @@ export function router(config: CreateRouterConfig): Router {
 
   function mapRoute(inputRoute: InputRoute): MappedRoute | null {
     if (inputIs.pathlessRoute(inputRoute)) {
-      const { build, parse } = compile<string, any>(getPathWithBase(inputRoute.path));
+      const path = getPathWithBase(inputRoute.path);
+      const { build, parse } = compile<string, any>(path);
 
       return {
         route: inputRoute.route as InternalRoute<any>,
-        path: inputRoute.path,
+        // Store the base-joined path, consistent with the PathRoute branch, so
+        // knownRoutes/ownRoutes report the same URL the parser/builder use.
+        path,
         build,
         parse
       };
@@ -234,7 +237,11 @@ export function router(config: CreateRouterConfig): Router {
     let internalRoute = inputRoute as PathRoute<any> & InternalRoute<any>;
     const parts: string[] = [];
 
-    parts.unshift(internalRoute.path);
+    // A leaf whose own path is "/" must not append a trailing slash to the
+    // joined URL (ancestors already skip "/" for the same reason).
+    if (internalRoute.path !== "/") {
+      parts.unshift(internalRoute.path);
+    }
 
     while (internalRoute.parent) {
       if (is.pathlessRoute(internalRoute.parent)) {

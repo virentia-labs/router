@@ -1,7 +1,7 @@
 import type { HistoryLike, RouterAdapter, To } from "../types";
 
 function extractLocation(location: HistoryLike["location"]) {
-  const url = new URL(decodeURIComponent(location.search || "?"), "http://router.local");
+  const url = new URL(safeDecode(location.search || "?"), "http://router.local");
 
   return {
     pathname: url.pathname === "/" ? "" : url.pathname,
@@ -10,9 +10,23 @@ function extractLocation(location: HistoryLike["location"]) {
   };
 }
 
+// A malformed percent-encoding must not throw and tear down the subscription.
+function safeDecode(value: string): string {
+  try {
+    return decodeURIComponent(value);
+  } catch {
+    return value;
+  }
+}
+
 export function queryAdapter(history: HistoryLike): RouterAdapter {
   return {
-    location: extractLocation(history.location),
+    // A getter, not a construction-time snapshot: the router reads `location`
+    // right after a push to detect a blocked navigation, and must see the
+    // current URL, not the one captured when the adapter was created.
+    get location() {
+      return extractLocation(history.location);
+    },
 
     push(to: To) {
       history.push(toToSearch(to, history.location.pathname));

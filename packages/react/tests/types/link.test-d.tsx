@@ -1,5 +1,6 @@
 import { describe, expectTypeOf, it } from "vitest";
 import { route } from "@virentia/router";
+import type { Query } from "@virentia/router";
 import { Link, useLink } from "../../lib";
 import type { LinkProps } from "../../lib";
 
@@ -80,6 +81,10 @@ describe("Link", () => {
       />
     );
     expectTypeOf(ok).not.toBeAny();
+    // The shared open/anchor props are actually typed on LinkProps, not `any`.
+    expectTypeOf<LinkProps<{ id: string }>["query"]>().toEqualTypeOf<Query | undefined>();
+    expectTypeOf<LinkProps<{ id: string }>["replace"]>().toEqualTypeOf<boolean | undefined>();
+    expectTypeOf<LinkProps<{ id: string }>["to"]>().not.toBeAny();
   });
 });
 
@@ -101,10 +106,14 @@ describe("useLink", () => {
   });
 
   it("exposes params/query as optional positionals", () => {
-    expectTypeOf(useLink)
-      .parameter(0)
-      .toEqualTypeOf<Parameters<typeof useLink>[0]>();
-    // Void route may be called with zero extra args.
-    expectTypeOf(useLink(homeRoute)).toHaveProperty("path");
+    // A param route is callable with (route, params[, query]); a void route
+    // with just (route) — the params/query positionals are optional. Each call
+    // compiles only if the overload accepts those arguments.
+    const withParams = useLink(profileRoute, { id: "1" });
+    const withParamsAndQuery = useLink(profileRoute, { id: "1" }, { q: "x" });
+    const voidRoute = useLink(homeRoute);
+    expectTypeOf(withParams).toHaveProperty("path");
+    expectTypeOf(withParamsAndQuery).toHaveProperty("path");
+    expectTypeOf(voidRoute).toHaveProperty("path");
   });
 });

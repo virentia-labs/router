@@ -28,7 +28,7 @@ export const Link: ForwardedLink = forwardRef<HTMLAnchorElement, LinkProps<any>>
           event.preventDefault();
 
           void link.open({
-            ...(params === undefined ? {} : { params }),
+            ...(params == null ? {} : { params }),
             query,
             replace
           } as RouteOpenedPayload<any>);

@@ -36,7 +36,7 @@ type ValidateTypes<GenTypes> = GenTypes extends "number"
   ? "valid"
   : GenTypes extends ""
     ? ["invalid", "<number,union>"]
-    : GenTypes extends `${string}|${string}` | string
+    : GenTypes extends `${string}|${string}`
       ? "valid"
       : ["invalid", "<number,union>"];
 

@@ -37,10 +37,10 @@ export function stackNavigator(
     const navigationRef = React.useRef<any>(null);
     const navigatorProps = {
       ...(initialRouteName !== undefined ? { initialRouteName } : {}),
+      // Navigator-level screenOptions already apply to every screen as defaults;
+      // no need to also spread the same object onto each <Stack.Screen>.
       ...(screenOptions !== undefined ? { screenOptions } : {})
     };
-    const screenOptionsProps =
-      screenOptions !== undefined ? { options: screenOptions } : {};
 
     useEffect(() => {
       if (!navigationRef.current) {
@@ -78,7 +78,6 @@ export function stackNavigator(
             key={getRouteKey(routeView.route, index)}
             name={getStackRouteName(routeView.route, index)}
             component={component}
-            {...screenOptionsProps}
           />
         ))}
       </Stack.Navigator>

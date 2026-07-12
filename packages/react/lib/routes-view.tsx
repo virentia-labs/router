@@ -1,5 +1,6 @@
 import { createElement } from "react";
 import { OutletContext } from "./context";
+import { routeKey } from "./route-key";
 import type { CreateRoutesViewProps } from "./types";
 import { useOpenedViews } from "./use-opened-views";
 
@@ -13,7 +14,7 @@ export function routesView({ otherwise: Otherwise, routes }: CreateRoutesViewPro
 
     return (
       <OutletContext.Provider value={{ children: openedView.children ?? [] }}>
-        {createElement(openedView.view)}
+        {createElement(openedView.view, { key: routeKey(openedView.route) })}
       </OutletContext.Provider>
     );
   };

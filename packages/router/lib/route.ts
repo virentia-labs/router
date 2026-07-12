@@ -194,14 +194,7 @@ export function route<Params extends object | void = void>(
         navigate: false
       };
 
-      if (payload.skipBeforeOpen !== undefined) {
-        parentPayload.skipBeforeOpen = payload.skipBeforeOpen;
-      }
-
-      await parent.internal.activateRoute(
-        parentPayload,
-        inRouteScope,
-      );
+      await parent.internal.activateRoute(parentPayload, inRouteScope);
     }
 
     inRouteScope(() => {
@@ -240,14 +233,9 @@ export function route<Params extends object | void = void>(
 function normalizeRoutePayload<T extends object | void>(
   payload: RouteOpenedPayload<T>,
 ): InternalOpenedPayload<T> {
-  const normalized =
-    payload && typeof payload === "object"
-      ? { ...(payload as OpenPayloadBase) }
-      : ({} as OpenPayloadBase);
-
-  return {
-    ...normalized
-  } as InternalOpenedPayload<T>;
+  return (
+    payload && typeof payload === "object" ? { ...(payload as OpenPayloadBase) } : {}
+  ) as InternalOpenedPayload<T>;
 }
 
 function readPayloadParams<T extends object | void>(
@@ -261,12 +249,63 @@ function readPayloadParams<T extends object | void>(
   return fallback;
 }
 
+let nonSerializableCounter = 0;
+
 function activationKeyOf<T extends object | void>(
   payload: InternalOpenedPayload<T>,
   fallback: T,
 ): string {
-  return JSON.stringify({
+  const shape = {
     params: readPayloadParams(payload, fallback),
     query: payload.query ?? {}
-  });
+  };
+
+  try {
+    // Order-independent so `{a,b}` and `{b,a}` yield the same key — otherwise
+    // idempotency is defeated by mere key-insertion order.
+    return stableStringify(shape);
+  } catch {
+    // Non-serializable params (BigInt, circular refs, …): fall back to a unique
+    // key so activation is never skipped and never throws.
+    return ` nonserializable:${nonSerializableCounter++}`;
+  }
+}
+
+function stableStringify(value: unknown): string {
+  const seen = new WeakSet<object>();
+
+  const normalize = (node: unknown): unknown => {
+    if (node && typeof node === "object") {
+      // Cycle detection: an object is "circular" only if it appears in its OWN
+      // ancestry path. Remove it from `seen` after visiting its children, so a
+      // shared (DAG) reference across sibling keys is NOT mistaken for a cycle.
+      if (seen.has(node)) {
+        throw new Error("circular");
+      }
+
+      seen.add(node);
+
+      let result: unknown;
+
+      if (Array.isArray(node)) {
+        result = node.map(normalize);
+      } else {
+        const out: Record<string, unknown> = {};
+
+        for (const key of Object.keys(node).sort()) {
+          out[key] = normalize((node as Record<string, unknown>)[key]);
+        }
+
+        result = out;
+      }
+
+      seen.delete(node);
+
+      return result;
+    }
+
+    return node;
+  };
+
+  return JSON.stringify(normalize(value));
 }

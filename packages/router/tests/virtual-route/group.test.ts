@@ -1,9 +1,21 @@
 import { scope, scoped } from "@virentia/core";
-import { describe, expect, test } from "vitest";
-import { virtualRoute, group, type RouteOpenedPayload } from "../lib";
+import { createMemoryHistory } from "history";
+import { describe, expect, it, vi } from "vitest";
+import { historyAdapter, group, route, router, virtualRoute, type RouteOpenedPayload } from "../../lib";
 
-describe("routes grouping", () => {
-  test("grouped route opens when one of passed routes is opened", async () => {
+function memoryRouter(routes: any[], entries: string[] = ["/"]) {
+  const appScope = scope();
+  const history = createMemoryHistory({ initialEntries: entries });
+  const appRouter = router({ routes });
+  return { appScope, history, appRouter };
+}
+
+async function attach(appRouter: any, appScope: any, history: any) {
+  await scoped(appScope, () => appRouter.setHistory(historyAdapter(history)));
+}
+
+describe("group", () => {
+  it("opens while any member is open", async () => {
     const appScope = scope();
     const route1 = virtualRoute<RouteOpenedPayload<void>, void>();
     const route2 = virtualRoute<RouteOpenedPayload<void>, void>();
@@ -28,7 +40,7 @@ describe("routes grouping", () => {
     });
   });
 
-  test("grouped route closes when all passed routes are closed", async () => {
+  it("closes once all members are closed", async () => {
     const appScope = scope();
     const route1 = virtualRoute<RouteOpenedPayload<void>, void>();
     const route2 = virtualRoute<RouteOpenedPayload<void>, void>();
@@ -54,7 +66,7 @@ describe("routes grouping", () => {
     });
   });
 
-  test("virtual route grouping works correctly", async () => {
+  it("tracks the open state of a single virtual member", async () => {
     const appScope = scope();
     const vRoute = virtualRoute({
       transformer: (_: RouteOpenedPayload<void>) => null
@@ -75,6 +87,24 @@ describe("routes grouping", () => {
 
     scoped(appScope, () => {
       expect(routesGroup.isOpened.value).toBe(false);
+    });
+  });
+
+  describe("over path routes", () => {
+    it("is opened while any member route is active", async () => {
+      const a = route({ path: "/a" });
+      const b = route({ path: "/b" });
+      const section = group([a, b]);
+      const { appScope, history, appRouter } = memoryRouter([a, b], ["/a"]);
+      await attach(appRouter, appScope, history);
+
+      await vi.waitFor(() => scoped(appScope, () => expect(section.isOpened.value).toBe(true)));
+
+      history.push("/b");
+      await vi.waitFor(() => scoped(appScope, () => expect(section.isOpened.value).toBe(true)));
+
+      history.push("/c");
+      await vi.waitFor(() => scoped(appScope, () => expect(section.isOpened.value).toBe(false)));
     });
   });
 });

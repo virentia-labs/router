@@ -9,6 +9,10 @@ export default defineConfig({
   },
   test: {
     environment: "happy-dom",
-    setupFiles: ["./tests/setup.ts"]
+    setupFiles: ["./tests/setup.ts"],
+    typecheck: {
+      tsconfig: new URL("../../tsconfig.json", import.meta.url).pathname,
+      include: ["**/*.test-d.ts", "**/*.test-d.tsx"]
+    }
   }
 });

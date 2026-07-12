@@ -9,7 +9,9 @@ import type {
 } from "./types";
 
 function routeIsActive(forRoutes: Route<any>[] | undefined, activeRoutes: Route<any>[]) {
-  if (!forRoutes) {
+  // No forRoutes — or an empty list — means "not route-gated": the tracker keys
+  // purely off the query. An empty array must not silently disable it forever.
+  if (!forRoutes || forRoutes.length === 0) {
     return true;
   }
 
@@ -164,9 +166,14 @@ function entryKey(
   forRoutes: Route<any>[] | undefined,
   activeRoutes: Route<any>[],
 ): string {
-  const routeKey = forRoutes
-    ? activeRoutes.map((route) => forRoutes.indexOf(route)).join(",")
-    : activeRoutes.map((route) => ("path" in route ? route.path : "")).join(",");
+  // A non-gated tracker (no forRoutes, or an empty list) is query-only: its entry
+  // key must NOT include the active-route set, so navigating between routes with
+  // an unchanged tracked query does not spuriously re-enter. A gated tracker keys
+  // off membership within its gate list (per-route-within-gate entries).
+  const routeKey =
+    forRoutes && forRoutes.length > 0
+      ? activeRoutes.map((route) => forRoutes.indexOf(route)).join(",")
+      : "";
 
   return `${routeKey}:${JSON.stringify(data)}`;
 }
