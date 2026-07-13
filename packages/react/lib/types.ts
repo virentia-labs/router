@@ -22,9 +22,23 @@ export interface CreateLazyRouteViewProps<T extends object | void = void>
   fallback?: ComponentType;
 }
 
+// A set of route views that share one layout. `routesView` renders it: while any
+// member is active the shared layout stays mounted and only the inner view swaps.
+export interface RouteViewGroup {
+  route: VirtualRoute<any, any>;
+  views: RouteView[];
+  layout?: LayoutComponent;
+}
+
 export interface CreateRoutesViewProps {
-  routes: RouteView[];
+  routes: (RouteView | RouteViewGroup)[];
   otherwise?: ComponentType;
+  layout?: LayoutComponent;
+}
+
+export interface CreateRouteViewGroupProps {
+  views: RouteView[];
+  layout?: LayoutComponent;
 }
 
 type AnchorProps = Omit<AnchorHTMLAttributes<HTMLAnchorElement>, "href">;

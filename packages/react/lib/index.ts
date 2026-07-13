@@ -1,5 +1,6 @@
 export { lazyRouteView } from "./lazy-route-view";
 export { routeView } from "./route-view";
+export { routeViewGroup } from "./route-view-group";
 export { routesView } from "./routes-view";
 export { Link } from "./link";
 export { Outlet } from "./outlet";

@@ -1,18 +1,19 @@
 import {
   computed,
+  effect,
   reaction,
   scoped,
   store,
   type Effect,
   type EventCallable,
-  type UnitList
+  type UnitList,
 } from "@virentia/core";
 import { virtualRoute } from "./virtual-route";
 import type {
   AsyncBundleImport,
   Route,
   RouteOpenedPayload,
-  VirtualRoute
+  VirtualRoute,
 } from "./types";
 
 type BeforeOpenUnit<T extends object | void = void> =
@@ -35,44 +36,32 @@ export function chainRoute<T extends object | void = void>(
   let asyncImport: AsyncBundleImport | null = null;
 
   const lastPayload = store<RouteOpenedPayload<T> | null>(null);
-  const isPendingState = store<boolean>(false);
-  const isPending = computed(() => isPendingState.value);
 
-  async function runBeforeOpen(payload: RouteOpenedPayload<T>): Promise<void> {
-    const inRouteScope = scoped();
-
-    isPendingState.value = true;
-
-    try {
-      if (asyncImport) {
-        await inRouteScope(() => asyncImport?.());
-      }
-
-      for (const unit of beforeOpenUnits) {
-        await inRouteScope(() => unit(payload as never));
-      }
-    } finally {
-      inRouteScope(() => {
-        isPendingState.value = false;
-      });
+  const runBeforeOpenFx = effect(async (payload: RouteOpenedPayload<T>) => {
+    if (asyncImport) {
+      await scoped(() => asyncImport?.());
     }
-  }
+
+    for (const unit of beforeOpenUnits) {
+      await scoped(() => unit(payload as never));
+    }
+  });
 
   const self = virtualRoute<RouteOpenedPayload<T>, T>({
-    isPending,
-    transformer
+    isPending: runBeforeOpenFx.pending,
+    transformer,
   });
 
   reaction({
     on: route.opened,
-    run(payload: any) {
+    async run(payload: any) {
       // Remember the payload for the deferred open, but do NOT write self.params
       // yet: the guard may still reject, and a rejected chain must not leak the
       // source route's params into a route that never opens. params are set when
       // self.open actually fires (via the virtualRoute transformer).
       lastPayload.value = payload as RouteOpenedPayload<T>;
-      void runBeforeOpen(payload as RouteOpenedPayload<T>);
-    }
+      await runBeforeOpenFx(payload as RouteOpenedPayload<T>);
+    },
   });
 
   if (openOn) {
@@ -80,7 +69,7 @@ export function chainRoute<T extends object | void = void>(
       on: openOn,
       run() {
         void self.open(lastPayload.value ?? ({} as RouteOpenedPayload<T>));
-      }
+      },
     });
   }
 
@@ -90,7 +79,7 @@ export function chainRoute<T extends object | void = void>(
     on: route.closed,
     run() {
       void self.close();
-    }
+    },
   });
 
   if (cancelOn) {
@@ -99,7 +88,7 @@ export function chainRoute<T extends object | void = void>(
       run() {
         void self.close();
         void self.cancelled();
-      }
+      },
     });
   }
 
@@ -107,12 +96,14 @@ export function chainRoute<T extends object | void = void>(
     internal: {
       setAsyncImport(value: AsyncBundleImport) {
         asyncImport = value;
-      }
-    }
+      },
+    },
   });
 }
 
-function transformer<T extends object | void>(payload: RouteOpenedPayload<T>): T {
+function transformer<T extends object | void>(
+  payload: RouteOpenedPayload<T>,
+): T {
   if (payload && typeof payload === "object" && "params" in payload) {
     return payload.params as T;
   }

@@ -1,15 +1,17 @@
 import { useMemo } from "react";
 import { is } from "@virentia/router";
-import type { RouteView } from "./types";
+import type { Route, Router, VirtualRoute } from "@virentia/router";
 import { useIsOpened } from "./use-is-opened";
 
-export function useOpenedViews(routes: RouteView[]): RouteView[] {
+type RouteLike = { route: Route<any> | Router | VirtualRoute<any, any> };
+
+export function useOpenedViews<T extends RouteLike>(routes: T[]): T[] {
   const visibilities = routes.map((view) => useIsOpened(view.route));
 
   return useMemo(() => {
     const opened = routes.filter((_view, index) => visibilities[index]);
 
-    return opened.reduce((result, view) => {
+    return opened.reduce<T[]>((result, view) => {
       // Collect the full ancestor chain, not just the direct parent, so an
       // opened grandchild eliminates a listed grandparent even when the
       // intermediate parent is absent from the view list.

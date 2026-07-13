@@ -2,20 +2,31 @@ import { describe, expectTypeOf, it } from "vitest";
 import type { ComponentType } from "react";
 import { route } from "@virentia/router";
 import { routesView } from "../../lib";
-import type { CreateRoutesViewProps, RouteView } from "../../lib";
+import type {
+  CreateRoutesViewProps,
+  LayoutComponent,
+  RouteView,
+  RouteViewGroup
+} from "../../lib";
 
 const homeRoute = route({ path: "/" });
 
 // Type-level spec for routesView / CreateRoutesViewProps / RouteView.
 describe("CreateRoutesViewProps", () => {
-  it("types routes as a RouteView list", () => {
-    expectTypeOf<CreateRoutesViewProps["routes"]>().toEqualTypeOf<RouteView[]>();
+  it("types routes as a list of route views or groups", () => {
+    expectTypeOf<CreateRoutesViewProps["routes"]>().toEqualTypeOf<
+      (RouteView | RouteViewGroup)[]
+    >();
   });
 
   it("types otherwise as an optional component", () => {
     expectTypeOf<CreateRoutesViewProps["otherwise"]>().toEqualTypeOf<
       ComponentType | undefined
     >();
+  });
+
+  it("types layout as an optional layout component", () => {
+    expectTypeOf<CreateRoutesViewProps["layout"]>().toEqualTypeOf<LayoutComponent | undefined>();
   });
 });
 
@@ -38,6 +49,18 @@ describe("routesView", () => {
       routes: [{ route: homeRoute, view: () => null }],
       otherwise: () => null
     });
+  });
+
+  it("accepts a layout component", () => {
+    expectTypeOf(routesView).toBeCallableWith({
+      routes: [{ route: homeRoute, view: () => null }],
+      layout: ({ children }) => children
+    });
+  });
+
+  it("rejects a non-component layout", () => {
+    // @ts-expect-error `layout` must be a component, not a string.
+    routesView({ routes: [], layout: "shell" });
   });
 
   it("rejects a call without routes", () => {
