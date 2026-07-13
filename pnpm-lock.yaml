@@ -49,11 +49,11 @@ importers:
         specifier: ^19.2.3
         version: 19.2.3(@types/react@19.2.14)
       '@virentia/core':
-        specifier: ^0.6.4
-        version: 0.6.4
+        specifier: ^0.7.0
+        version: 0.7.0
       '@virentia/react':
-        specifier: ^0.2.12
-        version: 0.2.12(react@19.2.6)
+        specifier: ^0.3.0
+        version: 0.3.0(react@19.2.6)
       happy-dom:
         specifier: ^20.0.10
         version: 20.9.0
@@ -98,11 +98,11 @@ importers:
         specifier: ^19.2.7
         version: 19.2.14
       '@virentia/core':
-        specifier: ^0.6.4
-        version: 0.6.4
+        specifier: ^0.7.0
+        version: 0.7.0
       '@virentia/react':
-        specifier: ^0.2.12
-        version: 0.2.12(react@19.2.6)
+        specifier: ^0.3.0
+        version: 0.3.0(react@19.2.6)
       history:
         specifier: ^5.3.0
         version: 5.3.0
@@ -138,8 +138,8 @@ importers:
         version: 9.3.1
     devDependencies:
       '@virentia/core':
-        specifier: ^0.6.4
-        version: 0.6.4
+        specifier: ^0.7.0
+        version: 0.7.0
       fast-check:
         specifier: ^4.8.0
         version: 4.8.0
@@ -1113,11 +1113,11 @@ packages:
   '@types/yargs@17.0.35':
     resolution: {integrity: sha512-qUHkeCyQFxMXg79wQfTtfndEC+N9ZZg76HJftDJp+qH2tV7Gj4OJi7l+PiWwJ+pWtW8GwSmqsDj/oymhrTWXjg==}
 
-  '@virentia/core@0.6.4':
-    resolution: {integrity: sha512-KYhlw+HiRSUF3pnbuGCtqhgnoCKeyyqc2WTxhcorNbOEYN1GcEpdyaELEg9J8jTWppMmr9mjdqmsM0mF6LY8nQ==}
+  '@virentia/core@0.7.0':
+    resolution: {integrity: sha512-+6wjKfALn5zELWI9kAWVyUv2zeKT1WnHolSLSkZqDnmhvySQAgAuob7UkCcIRPXWqVrU2PDW2yqtZkXP/1lgmQ==}
 
-  '@virentia/react@0.2.12':
-    resolution: {integrity: sha512-QHjDArYO1VPe4seJxNIWMe73VbU+10/15ZykAWNdmHhUAFWGmEIbHfDDI4VvSbWW8B0L2klfEZU4XIFUnU+sGw==}
+  '@virentia/react@0.3.0':
+    resolution: {integrity: sha512-NcP6+D4biHRn4/+woySh54hExqsFYeDY54F/98Zqm9oEaEVcidxbXmBuMm9SbJ4eeC/r2NLJXcYj8ntNkAsyAA==}
     peerDependencies:
       react: '>=18'
 
@@ -3807,11 +3807,11 @@ snapshots:
     dependencies:
       '@types/yargs-parser': 21.0.3
 
-  '@virentia/core@0.6.4': {}
+  '@virentia/core@0.7.0': {}
 
-  '@virentia/react@0.2.12(react@19.2.6)':
+  '@virentia/react@0.3.0(react@19.2.6)':
     dependencies:
-      '@virentia/core': 0.6.4
+      '@virentia/core': 0.7.0
       react: 19.2.6
 
   '@vitest/expect@4.1.6':

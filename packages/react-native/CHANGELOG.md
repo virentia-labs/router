@@ -1,5 +1,17 @@
 # @virentia/router-react-native
 
+## 0.4.0
+
+### Minor Changes
+
+- feat: group view & routes view layouts
+
+### Patch Changes
+
+- Updated dependencies
+  - @virentia/router@0.4.0
+  - @virentia/router-react@0.4.0
+
 ## 0.3.1
 
 ### Patch Changes

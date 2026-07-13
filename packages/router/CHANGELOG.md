@@ -1,5 +1,11 @@
 # @virentia/router
 
+## 0.4.0
+
+### Minor Changes
+
+- feat: group view & routes view layouts
+
 ## 0.3.1
 
 ### Patch Changes
