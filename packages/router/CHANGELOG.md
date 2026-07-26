@@ -1,5 +1,11 @@
 # @virentia/router
 
+## 0.4.1
+
+### Patch Changes
+
+- 50e1a08: fix: bump virentia to core 0.9.0 (react 0.4.1)
+
 ## 0.4.0
 
 ### Minor Changes

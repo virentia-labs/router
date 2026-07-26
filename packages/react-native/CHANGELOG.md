@@ -1,5 +1,14 @@
 # @virentia/router-react-native
 
+## 0.4.1
+
+### Patch Changes
+
+- 50e1a08: fix: bump virentia to core 0.9.0 (react 0.4.1)
+- Updated dependencies [50e1a08]
+  - @virentia/router@0.4.1
+  - @virentia/router-react@0.4.1
+
 ## 0.4.0
 
 ### Minor Changes
