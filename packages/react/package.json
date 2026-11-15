@@ -4,6 +4,7 @@
   "description": "React bindings for Virentia Router",
   "license": "MIT",
   "type": "module",
+  "sideEffects": false,
   "repository": {
     "type": "git",
     "url": "https://github.com/virentia-labs/router.git",
@@ -33,15 +34,15 @@
     "@virentia/router": "workspace:*"
   },
   "peerDependencies": {
-    "@virentia/react": ">=0.2.2",
+    "@virentia/react": ">=0.5.2",
     "react": ">=18"
   },
   "devDependencies": {
     "@testing-library/react": "^16.3.0",
     "@types/react": "^19.2.7",
     "@types/react-dom": "^19.2.3",
-    "@virentia/core": "^0.9.0",
-    "@virentia/react": "^0.4.1",
+    "@virentia/core": "link:../../../virentia/packages/core",
+    "@virentia/react": "link:../../../virentia/packages/react",
     "happy-dom": "^20.0.10",
     "history": "^5.3.0",
     "react": "^19.2.1",

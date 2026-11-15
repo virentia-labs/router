@@ -7,6 +7,7 @@ import {
   store,
   type ScopedRunner
 } from "@virentia/core";
+import { getModelSetupContext, scopedModelValue } from "@virentia/core/internal";
 import type { ParseUrlParams, ValidatePath } from "@virentia/router-paths";
 import type {
   AsyncBundleImport,
@@ -140,7 +141,7 @@ export function route<Params extends object | void = void>(
     }
   });
 
-  return self;
+  return getModelSetupContext() ? scopedModelValue(self) : self;
 
   async function openRoute(
     payload: InternalOpenedPayload<Params>,

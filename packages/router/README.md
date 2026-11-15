@@ -10,6 +10,8 @@ It describes routes as Virentia units, connects them to a history adapter, activ
 
 ## Install
 
+Requires `@virentia/core` 0.11.2 or newer.
+
 ```sh
 pnpm add @virentia/router @virentia/core
 ```
@@ -53,6 +55,35 @@ await scoped(appScope, () => profileRoute.open({ params: { id: 42 } }));
 history.location.pathname;
 // "/profile/42"
 ```
+
+## Model-owned routing
+
+Declare routes and the router once in `staticModel.setup` and return their native
+APIs. Each instance has its own route state and history connection:
+
+```ts
+import { staticModel } from "@virentia/core/models";
+
+const Screen = staticModel({
+  setup() {
+    const page = route({ path: "/edit/:id" });
+    return { page, navigation: router({ routes: [page] }) };
+  },
+});
+
+const screen = scoped(appScope, () => Screen.create({}));
+await screen.navigation.setHistory(historyAdapter(createMemoryHistory()));
+await screen.page.open({ params: { id: "first" } });
+screen.page.params.value;      // { id: "first" }
+screen.navigation.path.value; // "/edit/first"
+await screen.dispose();      // also disconnects this router's history listener
+```
+
+The unit graph is shared; values and pending work remain instance-local.
+`knownRoutes` and `activeRoutes` expose the matching bound route handles, so
+React `RouterProvider`/`useLink` accept `screen.navigation`/`screen.page` directly.
+Application-level routers declared outside model setup retain their manual
+`dispose` lifecycle.
 
 ## Before open
 

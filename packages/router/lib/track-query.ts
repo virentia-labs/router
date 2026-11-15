@@ -1,4 +1,5 @@
 import { event, reaction, store, type Event, type EventCallable, type Store } from "@virentia/core";
+import { getModelSetupContext, scopedModelValue } from "@virentia/core/internal";
 import type {
   LocationOrigin,
   NavigatePayload,
@@ -148,7 +149,7 @@ export function trackQueryFactory({
       }
     });
 
-    return {
+    const tracker: QueryTracker<Parameters> = {
       entered,
       exited,
       enteredExternally,
@@ -158,6 +159,7 @@ export function trackQueryFactory({
       enter,
       exit
     };
+    return getModelSetupContext() ? scopedModelValue(tracker) : tracker;
   };
 }
 

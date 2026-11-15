@@ -1,4 +1,5 @@
 import { computed, event, reaction, scoped, store } from "@virentia/core";
+import { getModelSetupContext, scopedModelValue } from "@virentia/core/internal";
 import queryString from "query-string";
 import { trackQueryFactory } from "./track-query";
 import type {
@@ -170,7 +171,7 @@ export function routerControls(): RouterControls {
     }
   });
 
-  return {
+  const controls: RouterControls = {
     history,
     locationState,
     query,
@@ -189,6 +190,9 @@ export function routerControls(): RouterControls {
       navigate
     })
   };
+  return getModelSetupContext() ? scopedModelValue(controls, {
+    initialize(value, instance) { instance.beforeDispose(() => value.dispose()); }
+  }) : controls;
 }
 
 function parseQuery(search: string): Query {

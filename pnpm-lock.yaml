@@ -49,11 +49,11 @@ importers:
         specifier: ^19.2.3
         version: 19.2.3(@types/react@19.2.14)
       '@virentia/core':
-        specifier: ^0.9.0
-        version: 0.9.0
+        specifier: link:../../../virentia/packages/core
+        version: link:../../../virentia/packages/core
       '@virentia/react':
-        specifier: ^0.4.1
-        version: 0.4.1(react@19.2.6)
+        specifier: link:../../../virentia/packages/react
+        version: link:../../../virentia/packages/react
       happy-dom:
         specifier: ^20.0.10
         version: 20.9.0
@@ -98,11 +98,11 @@ importers:
         specifier: ^19.2.7
         version: 19.2.14
       '@virentia/core':
-        specifier: ^0.9.0
-        version: 0.9.0
+        specifier: link:../../../virentia/packages/core
+        version: link:../../../virentia/packages/core
       '@virentia/react':
-        specifier: ^0.4.1
-        version: 0.4.1(react@19.2.6)
+        specifier: link:../../../virentia/packages/react
+        version: link:../../../virentia/packages/react
       history:
         specifier: ^5.3.0
         version: 5.3.0
@@ -138,8 +138,8 @@ importers:
         version: 9.3.1
     devDependencies:
       '@virentia/core':
-        specifier: ^0.9.0
-        version: 0.9.0
+        specifier: link:../../../virentia/packages/core
+        version: link:../../../virentia/packages/core
       fast-check:
         specifier: ^4.8.0
         version: 4.8.0
@@ -1112,14 +1112,6 @@ packages:
 
   '@types/yargs@17.0.35':
     resolution: {integrity: sha512-qUHkeCyQFxMXg79wQfTtfndEC+N9ZZg76HJftDJp+qH2tV7Gj4OJi7l+PiWwJ+pWtW8GwSmqsDj/oymhrTWXjg==}
-
-  '@virentia/core@0.9.0':
-    resolution: {integrity: sha512-mo1A4o6tnI6IUGgrY0IEg4+uqBLpTuPO8QBz1c/1BBUFcQezbdC9Vsrmfe56opPqQb9KI54F2SF6ulXRaQOn9g==}
-
-  '@virentia/react@0.4.1':
-    resolution: {integrity: sha512-l2iRteK4OhkSB5tyvpXwbsrXq05XkRqp7cP3b8F4RVbypSJJonfW5Tcx/3CjZ4lzju6ZwLPIr4JcvT20Usk8tw==}
-    peerDependencies:
-      react: '>=18'
 
   '@vitest/expect@4.1.6':
     resolution: {integrity: sha512-7EHDquPthALSV0jhhjgEW8FXaviMx7rSqu8W6oqCoAuOhKov814P99QDV1pxMA3QPv21YudvJngIhjrNI4opLg==}
@@ -3806,13 +3798,6 @@ snapshots:
   '@types/yargs@17.0.35':
     dependencies:
       '@types/yargs-parser': 21.0.3
-
-  '@virentia/core@0.9.0': {}
-
-  '@virentia/react@0.4.1(react@19.2.6)':
-    dependencies:
-      '@virentia/core': 0.9.0
-      react: 19.2.6
 
   '@vitest/expect@4.1.6':
     dependencies:

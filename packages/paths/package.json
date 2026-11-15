@@ -4,6 +4,7 @@
   "description": "Typed route path compiler for Virentia Router",
   "license": "MIT",
   "type": "module",
+  "sideEffects": false,
   "repository": {
     "type": "git",
     "url": "https://github.com/virentia-labs/router.git",

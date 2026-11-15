@@ -1,4 +1,5 @@
 import { computed, event, reaction, store, type Store } from "@virentia/core";
+import { getModelSetupContext, scopedModelValue } from "@virentia/core/internal";
 import type { VirtualRoute } from "./types";
 
 interface VirtualRouteOptions<T, TransformerResult> {
@@ -53,7 +54,7 @@ export function virtualRoute<T = void, TransformerResult = void>(
     }
   });
 
-  return {
+  const route: VirtualRoute<T, TransformerResult> = {
     "@@type": "pathless-route",
 
     params,
@@ -79,4 +80,5 @@ export function virtualRoute<T = void, TransformerResult = void>(
       onClose: close
     }
   };
+  return getModelSetupContext() ? scopedModelValue(route) : route;
 }
