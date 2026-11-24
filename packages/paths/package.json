@@ -1,6 +1,6 @@
 {
   "name": "@virentia/router-paths",
-  "version": "0.1.2",
+  "version": "0.1.3",
   "description": "Typed route path compiler for Virentia Router",
   "license": "MIT",
   "type": "module",

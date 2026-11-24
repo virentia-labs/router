@@ -1,5 +1,23 @@
 # @virentia/router-react
 
+## 0.4.3
+
+### Patch Changes
+
+- Support router bindings with native model scopes in React.
+
+- Updated Virentia dependencies
+  - @virentia/router@0.4.3
+  - @virentia/react@0.6.0
+
+## 0.4.2
+
+### Patch Changes
+
+- Update Virentia dependencies to core 0.11.1 and react 0.5.1
+- Updated dependencies
+  - @virentia/router@0.4.2
+
 ## 0.4.1
 
 ### Patch Changes

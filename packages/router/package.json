@@ -1,6 +1,6 @@
 {
   "name": "@virentia/router",
-  "version": "0.4.1",
+  "version": "0.4.3",
   "description": "Virentia-native router",
   "license": "MIT",
   "type": "module",
@@ -41,6 +41,6 @@
     "vitest": "^4.0.18"
   },
   "peerDependencies": {
-    "@virentia/core": ">=0.11.2"
+    "@virentia/core": ">=0.12.0"
   }
 }

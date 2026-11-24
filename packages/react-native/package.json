@@ -1,6 +1,6 @@
 {
   "name": "@virentia/router-react-native",
-  "version": "0.4.1",
+  "version": "0.4.3",
   "description": "React Native bindings for Virentia Router",
   "license": "MIT",
   "type": "module",
@@ -38,7 +38,7 @@
     "@react-navigation/bottom-tabs": ">=6",
     "@react-navigation/native": ">=6",
     "@react-navigation/stack": ">=6",
-    "@virentia/react": ">=0.5.2",
+    "@virentia/react": ">=0.6.0",
     "react": ">=18",
     "react-native": ">=0.70"
   },
