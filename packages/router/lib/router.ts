@@ -1,4 +1,5 @@
-import { computed, reaction, scoped } from "@virentia/core";
+import { computed, getCurrentScope, reaction, scoped, type Scope } from "@virentia/core";
+import { getModelSetupContext, scopedModelValue, unwrapMicroScope, type ModelValueContext } from "@virentia/core/internal";
 import { compile } from "@virentia/router-paths";
 import { routerControls } from "./router-controls";
 import { trackQueryFactory } from "./track-query";
@@ -38,6 +39,7 @@ export function router(config: CreateRouterConfig): Router {
   const ownRoutes: MappedRoute[] = [];
   const knownRoutes: MappedRoute[] = [];
   let parent: Router | null = null;
+  const modelScopes = getModelSetupContext() ? new WeakMap<Scope, ModelValueContext>() : undefined;
 
   const activeRoutes = computed(() => {
     const currentPath = controls.path.value;
@@ -46,9 +48,11 @@ export function router(config: CreateRouterConfig): Router {
       return [] as Route<any>[];
     }
 
+    const current = getCurrentScope();
+    const context = current && modelScopes?.get(unwrapMicroScope(current));
     return ownRoutes
       .filter(({ parse }) => parse(currentPath))
-      .map(({ route }) => route as Route<any>);
+      .map(({ route }) => (context ? context.bind(route) : route) as Route<any>);
   });
 
   const trackQuery = trackQueryFactory({
@@ -172,7 +176,28 @@ export function router(config: CreateRouterConfig): Router {
     }
   });
 
-  return self;
+  return modelScopes ? scopedModelValue(self, {
+    bound(value, context) {
+      modelScopes.set(context.instance.scope, context);
+      // Route tables are declaration metadata; expose handles in the same model
+      // as page/open, so useLink's identity lookup keeps working.
+      const table = (source: MappedRoute[]) => {
+        let previous: MappedRoute[] = [], views: MappedRoute[] = [];
+        return () => {
+          if (previous.length !== source.length || previous.some((entry, i) => entry !== source[i])) {
+            previous = source.slice();
+            views = source.map(entry => ({ ...entry, route: context.bind(entry.route) }));
+          }
+          return views;
+        };
+      };
+      Object.defineProperties(value, {
+        ownRoutes: { configurable: true, enumerable: true, get: table(ownRoutes) },
+        knownRoutes: { configurable: true, enumerable: true, get: table(knownRoutes) },
+      });
+    },
+    initialize(value, instance) { instance.beforeDispose(() => value.dispose()); }
+  }) : self;
 
   function registerRouteApi({ route, build }: MappedRoute) {
     reaction({

@@ -2,3 +2,7 @@ node_modules/
 .pnpm-store/
 dist/
 packages/*/dist/
+
+# Left behind when a `vitest typecheck` run is interrupted; vitest removes it on a clean exit.
+tsconfig.vitest-temp.json
+.DS_Store

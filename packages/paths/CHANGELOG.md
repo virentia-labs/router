@@ -1,5 +1,11 @@
 # @virentia/router-paths
 
+## 0.1.3
+
+### Patch Changes
+
+- Improve path parsing, round trips, array segments and reserved character handling.
+
 ## 0.1.2
 
 ### Patch Changes

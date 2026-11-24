@@ -1,5 +1,16 @@
 # @virentia/router-react-native
 
+## 0.4.3
+
+### Patch Changes
+
+- Update the React Native release to use the native model router bindings.
+
+- Updated Virentia dependencies
+  - @virentia/router@0.4.3
+  - @virentia/router-react@0.4.3
+  - @virentia/react@0.6.0
+
 ## 0.4.2
 
 ### Patch Changes

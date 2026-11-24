@@ -1,5 +1,15 @@
 # @virentia/router
 
+## 0.4.3
+
+### Patch Changes
+
+- Keep routing state and cleanup bound to native model scopes. Update the path compiler.
+
+- Updated Virentia dependencies
+  - @virentia/router-paths@0.1.3
+  - @virentia/core@0.12.0
+
 ## 0.4.2
 
 ### Patch Changes

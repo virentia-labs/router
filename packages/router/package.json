@@ -1,9 +1,10 @@
 {
   "name": "@virentia/router",
-  "version": "0.4.2",
+  "version": "0.4.3",
   "description": "Virentia-native router",
   "license": "MIT",
   "type": "module",
+  "sideEffects": false,
   "repository": {
     "type": "git",
     "url": "https://github.com/virentia-labs/router.git",
@@ -34,12 +35,12 @@
     "query-string": "^9.3.1"
   },
   "devDependencies": {
-    "@virentia/core": "^0.11.1",
+    "@virentia/core": "link:../../../virentia/packages/core",
     "fast-check": "^4.8.0",
     "history": "^5.3.0",
     "vitest": "^4.0.18"
   },
   "peerDependencies": {
-    "@virentia/core": ">=0.3.0"
+    "@virentia/core": ">=0.12.0"
   }
 }
